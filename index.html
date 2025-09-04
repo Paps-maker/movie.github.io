@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MovieDrift</title>
 <link rel="icon" href="img/logo.png" type="image/png">
-<title>Movie Zone</title>
 <style>
 :root {
   --bg: #000;
@@ -13,124 +13,67 @@
   --text: #ddd;
   --muted: #888;
 }
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-}
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #111;
-  padding: 10px 20px;
-  flex-wrap: wrap;
-}
-.logo { font-size: 24px; font-weight: bold; color: var(--accent); }
-.controls { display: flex; gap: 10px; flex-wrap: wrap; }
-input, select, button, textarea {
-  padding: 6px 10px;
-  border: 1px solid var(--accent);
-  border-radius: 4px;
-  background: var(--card-bg);
-  color: var(--text);
-}
-button { cursor: pointer; font-weight: bold; }
-button:hover { background: #003300; }
-main { padding: 20px; }
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-}
-.card {
-  background: var(--card-bg);
-  border: 1px solid rgba(0,255,102,0.15);
-  border-radius: 8px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s;
-}
+body { margin:0; font-family: Arial,sans-serif; background: var(--bg); color: var(--text);}
+header { display:flex; justify-content:space-between; align-items:center; background:#111; padding:10px 20px; flex-wrap:wrap;}
+.logo { font-size:24px; font-weight:bold; color: var(--accent); }
+.controls { display:flex; gap:10px; flex-wrap:wrap; }
+input, select, button, textarea { padding:6px 10px; border:1px solid var(--accent); border-radius:4px; background:var(--card-bg); color: var(--text);}
+button { cursor:pointer; font-weight:bold;}
+button:hover { background:#003300; }
+main { padding:20px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:20px;}
+.card { background:var(--card-bg); border:1px solid rgba(0,255,102,0.15); border-radius:8px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s;}
 .card:hover { transform: scale(1.05); }
-.poster { width: 100%; height: 300px; object-fit: cover; }
-.card-body {
-  padding: 10px;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.movie-title { font-size: 16px; font-weight: bold; color: var(--accent); margin: 0; }
-.meta { font-size: 13px; color: var(--muted); margin: 4px 0; }
-.card-actions { display: flex; gap: 5px; flex-wrap: wrap; }
-.btn { flex: 1; text-align: center; }
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.9);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  overflow-y: auto;
-}
-.modal-content {
-  background: var(--card-bg);
-  max-width: 900px;
-  width: 95%;
-  max-height: 90vh;
-  overflow-y: auto;
-  border-radius: 8px;
-  padding: 20px;
-  position: relative;
-}
-.close {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  cursor: pointer;
-  color: var(--accent);
-  font-size: 22px;
-}
-iframe, video { width: 100%; height: 400px; border-radius: 6px; }
-#adminPanel {
-  display: none;
-  padding: 20px;
-  background: var(--card-bg);
-  border-top: 1px solid rgba(0,255,102,0.15);
-}
-#adminPanel h3 { color: var(--accent); margin-bottom: 10px; }
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 15px;
-}
-label { font-size: 13px; color: var(--muted); margin-bottom: 3px; display: block; }
-.form-control { display: flex; flex-direction: column; }
-textarea { resize: vertical; min-height: 80px; }
-.submit-row { margin-top: 15px; text-align: right; }
-#watchlistModal h2 { color: var(--accent); margin-bottom: 15px; }
-#watchlistModal .movie-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 15px;
-}
-.watchlist-card {
-  background: #111; border-radius: 8px; padding: 10px; text-align: center;
-  transition: transform 0.2s;
-}
-.watchlist-card:hover { transform: scale(1.05); background: #181818; }
-.watchlist-card img { width: 100%; border-radius: 6px; margin-bottom: 6px; }
-.remove-btn {
-  margin-top: 6px; padding: 4px 8px; border: none; border-radius: 4px;
-  background: #e63946; color: white; cursor: pointer; font-size: 0.8rem;
-}
-.remove-btn:hover { background: #c82333; }
-.episode-list { margin-top: 10px; }
-.episode-list button { margin: 2px; font-size: 0.8rem; }
+.poster { width:100%; height:300px; object-fit:cover; }
+.card-body { padding:10px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between;}
+.movie-title { font-size:16px; font-weight:bold; color:var(--accent); margin:0; }
+.meta { font-size:13px; color:var(--muted); margin:4px 0; }
+.card-actions { display:flex; gap:5px; flex-wrap:wrap; }
+.btn { flex:1; text-align:center; }
+.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:1000; overflow-y:auto;}
+.modal-content { background:var(--card-bg); max-width:900px; width:95%; max-height:90vh; overflow-y:auto; border-radius:8px; padding:20px; position:relative; }
+.close { position:absolute; top:10px; right:15px; cursor:pointer; color:var(--accent); font-size:22px; }
+iframe, video { width:100%; height:400px; border-radius:6px; }
+#adminPanel { display:none; padding:20px; background:var(--card-bg); border-top:1px solid rgba(0,255,102,0.15); }
+#adminPanel h3 { color:var(--accent); margin-bottom:10px; }
+.form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:15px; }
+label { font-size:13px; color:var(--muted); margin-bottom:3px; display:block; }
+.form-control { display:flex; flex-direction:column; }
+textarea { resize:vertical; min-height:80px; }
+.submit-row { margin-top:15px; text-align:right; }
+#watchlistModal h2 { color:var(--accent); margin-bottom:15px; }
+#watchlistModal .movie-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:15px; }
+.watchlist-card { background:#111; border-radius:8px; padding:10px; text-align:center; transition:transform 0.2s; }
+.watchlist-card:hover { transform:scale(1.05); background:#181818; }
+.watchlist-card img { width:100%; border-radius:6px; margin-bottom:6px; }
+.remove-btn { margin-top:6px; padding:4px 8px; border:none; border-radius:4px; background:#e63946; color:white; cursor:pointer; font-size:0.8rem;}
+.remove-btn:hover { background:#c82333; }
+.episode-list { margin-top:10px; }
+.episode-list button { margin:2px; font-size:0.8rem; }
 </style>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.2.0/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDFVoYWgoxpRBxi3l3OUarvUn2_M9_lqqY",
+  authDomain: "moviedrift-fcc93.firebaseapp.com",
+  projectId: "moviedrift-fcc93",
+  storageBucket: "moviedrift-fcc93.appspot.com",
+  messagingSenderId: "794171988540",
+  appId: "1:794171988540:web:0f3ab8798d0d7606b98139"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+window.db = db;
+window.storage = storage;
+</script>
 </head>
 <body>
 <header>
@@ -143,7 +86,6 @@ textarea { resize: vertical; min-height: 80px; }
     <button id="adminLogin">Admin Login</button>
   </div>
 </header>
-
 <main><div id="grid" class="grid"></div></main>
 
 <section id="adminPanel">
@@ -153,10 +95,8 @@ textarea { resize: vertical; min-height: 80px; }
     <div class="form-control"><label>Year</label><input id="movieYear" type="number"></div>
     <div class="form-control"><label>Genres (comma separated)</label><input id="movieGenres" type="text"></div>
     <div class="form-control"><label>Poster Image</label><input id="moviePosterFile" type="file" accept="image/*"></div>
-    <div class="form-control"><label>Poster URL (optional)</label><input id="moviePosterURL" type="url"></div>
     <div class="form-control"><label>Movie File (MP4)</label><input id="movieFile" type="file" accept="video/mp4"></div>
     <div class="form-control"><label>Trailer/Embed Link (YouTube)</label><input id="movieTrailer" type="url"></div>
-    <div class="form-control"><label>Episodes (MP4, select multiple)</label><input id="seriesEpisodes" type="file" accept="video/mp4" multiple></div>
     <div class="form-control" style="grid-column: span 2;">
       <label>Description</label><textarea id="movieDesc"></textarea>
     </div>
@@ -173,286 +113,141 @@ textarea { resize: vertical; min-height: 80px; }
     <p id="modalYear"></p>
     <p id="modalGenres"></p>
     <div id="modalPlayer"></div>
-    <div class="episode-list" id="episodeList"></div>
     <p id="modalDesc"></p>
-    <button id="modalAddToList" class="btn">➕ Add to Watchlist</button>
   </div>
 </div>
 
-<div class="modal" id="watchlistModal">
-  <div class="modal-content">
-    <span class="close" onclick="closeModal('watchlistModal')">&times;</span>
-    <h2>📺 Your Watchlist</h2>
-    <div class="movie-list" id="watchlistContainer"></div>
-  </div>
-</div>
-
-<script>
-let movies = JSON.parse(localStorage.getItem("movies")) || [];
-let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
+<script type="module">
+// Globals
+let movies = [];
+let watchlist = [];
 const grid = document.getElementById("grid");
 const searchInput = document.getElementById("search");
 const genreFilter = document.getElementById("genreFilter");
 const yearFilter = document.getElementById("yearFilter");
 const watchlistBtn = document.getElementById("watchlistToggle");
+const adminLoginBtn = document.getElementById("adminLogin");
 
-// ----- IndexedDB Setup -----
-let db;
-const request = indexedDB.open("MovieDB", 1);
-request.onupgradeneeded = function(e){
-  db = e.target.result;
-  if(!db.objectStoreNames.contains("files")){
-    db.createObjectStore("files", {keyPath:"id"});
-  }
-};
-request.onsuccess = function(e){ db = e.target.result; loadAllMovies(); };
-request.onerror = function(e){ console.error("DB error", e); };
+// Firebase refs
+const { db, storage } = window;
 
-function saveFile(id, file){
-  return new Promise(resolve=>{
-    const tx = db.transaction("files","readwrite");
-    const store = tx.objectStore("files");
-    store.put({id,file});
-    tx.oncomplete = ()=>resolve();
-  });
-}
-function getFile(id){
-  return new Promise(resolve=>{
-    const tx = db.transaction("files","readonly");
-    const store = tx.objectStore("files");
-    const req = store.get(id);
-    req.onsuccess = ()=>resolve(req.result ? req.result.file : null);
-  });
+// Upload file to Firebase Storage
+async function uploadFile(file, path){
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, file);
+  return await getDownloadURL(storageRef);
 }
 
-// ----- LocalStorage helpers -----
-function saveMovies(){ localStorage.setItem("movies", JSON.stringify(movies)); }
-function saveWatchlist(){ localStorage.setItem("watchlist", JSON.stringify(watchlist)); }
+// Add movie to Firestore
+async function addMovieToFirebase(movie){
+  try{
+    const docRef = await addDoc(collection(db,"movies"), movie);
+    console.log("Movie added:", docRef.id);
+    fetchMovies();
+  }catch(e){ console.error(e); }
+}
 
-// ----- Render Movies -----
+// Fetch movies from Firestore
+async function fetchMovies(){
+  const querySnapshot = await getDocs(collection(db,"movies"));
+  movies = [];
+  querySnapshot.forEach(doc => movies.push({ id:doc.id, ...doc.data() }));
+  renderMovies();
+  populateFilters();
+}
+fetchMovies();
+
+// Render movie grid
 function renderMovies(){
-  grid.innerHTML = "";
+  grid.innerHTML="";
   const searchText = searchInput.value.toLowerCase();
   const genre = genreFilter.value;
   const year = yearFilter.value;
-  let filtered = movies.filter(m => {
-    const matchesSearch = m.title.toLowerCase().includes(searchText) || m.description.toLowerCase().includes(searchText);
-    const matchesGenre = genre ? m.genres.map(g => g.toLowerCase()).includes(genre.toLowerCase()) : true;
-    const matchesYear = year ? m.year == year : true;
-    return matchesSearch && matchesGenre && matchesYear;
-  });
+  let filtered = movies.filter(m => 
+    (m.title.toLowerCase().includes(searchText) || m.description.toLowerCase().includes(searchText)) &&
+    (genre ? m.genres.includes(genre) : true) &&
+    (year ? m.year == year : true)
+  );
   filtered.forEach((m,i)=>{
-    const card=document.createElement("div");
+    const card = document.createElement("div");
     card.className="card";
-    card.innerHTML=`
+    card.innerHTML = `
       <img class="poster" src="${m.poster}" alt="${m.title}">
       <div class="card-body">
         <h3 class="movie-title">${m.title}</h3>
         <div class="meta">${m.year} · ${m.genres.join(", ")}</div>
         <div class="card-actions">
-          <button class="btn" onclick="viewDetails(${i})">Details</button>
-          <button class="btn" onclick="addToWatchlist(${i})">Add to List</button>
+          <button class="btn" onclick="viewDetails('${m.id}')">Details</button>
         </div>
       </div>`;
     grid.appendChild(card);
   });
 }
 
-// ----- Filters -----
+// Populate filters
 function populateFilters(){
-  let allGenres=new Set();
-  movies.forEach(m=>m.genres.forEach(g=>allGenres.add(g)));
+  const allGenres = new Set();
+  const allYears = new Set();
+  movies.forEach(m=>{
+    m.genres.forEach(g=>allGenres.add(g));
+    allYears.add(m.year);
+  });
   genreFilter.innerHTML='<option value="">All genres</option>';
-  allGenres.forEach(g=>{ const opt=document.createElement("option"); opt.value=g; opt.innerText=g; genreFilter.appendChild(opt); });
-  let allYears=[...new Set(movies.map(m=>m.year))].sort((a,b)=>b-a);
+  allGenres.forEach(g=>genreFilter.innerHTML+=`<option value="${g}">${g}</option>`);
   yearFilter.innerHTML='<option value="">All years</option>';
-  allYears.forEach(y=>{ const opt=document.createElement("option"); opt.value=y; opt.innerText=y; yearFilter.appendChild(opt); });
+  Array.from(allYears).sort((a,b)=>b-a).forEach(y=>yearFilter.innerHTML+=`<option value="${y}">${y}</option>`);
 }
 
-// ----- YouTube converter -----
-function convertYouTubeLink(url){
-  if(url.includes("youtube.com/watch?v=")){
-    const videoId = url.split("v=")[1].split("&")[0];
-    return `https://www.youtube.com/embed/${videoId}`;
-  }
-  if(url.includes("youtu.be/")){
-    const videoId = url.split("youtu.be/")[1].split("?")[0];
-    return `https://www.youtube.com/embed/${videoId}`;
-  }
-  return url;
-}
+// Admin Login
+adminLoginBtn.addEventListener("click", ()=>{
+  const pwd = prompt("Enter admin password:");
+  if(pwd==="@Stone001") document.getElementById("adminPanel").style.display="block";
+  else alert("❌ Wrong password!");
+});
 
-// ----- View Details -----
-async function viewDetails(i){
-  const m=movies[i];
-  document.getElementById("modalTitle").innerText=m.title;
-  document.getElementById("modalYear").innerText="Year: "+m.year;
-  document.getElementById("modalGenres").innerText="Genres: "+m.genres.join(", ");
-  const player=document.getElementById("modalPlayer");
-  const epList=document.getElementById("episodeList");
-  epList.innerHTML="";
-  if(m.fileId){
-    const file = await getFile(m.fileId);
-    const url = URL.createObjectURL(file);
-    player.innerHTML=`<video controls src="${url}"></video>`;
-  } else if(m.trailer){
-    player.innerHTML=`<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
-  } else { player.innerHTML="<p>No video available</p>"; }
-  if(m.episodeIds && m.episodeIds.length>0){
-    for(let idx=0; idx<m.episodeIds.length; idx++){
-      const btn=document.createElement("button");
-      btn.textContent="Episode "+(idx+1);
-      btn.onclick=async ()=>{
-        const file = await getFile(m.episodeIds[idx]);
-        player.innerHTML=`<video controls src="${URL.createObjectURL(file)}" autoplay></video>`;
-      };
-      epList.appendChild(btn);
-    }
+// Add Movie
+document.getElementById("addMovieBtn").addEventListener("click", async ()=>{
+  const title = document.getElementById("movieTitle").value.trim();
+  const year = document.getElementById("movieYear").value.trim();
+  const genres = document.getElementById("movieGenres").value.trim().split(",").map(g=>g.trim()).filter(Boolean);
+  const desc = document.getElementById("movieDesc").value.trim();
+  const posterFile = document.getElementById("moviePosterFile").files[0];
+  const movieFile = document.getElementById("movieFile").files[0];
+  const trailer = document.getElementById("movieTrailer").value.trim();
+
+  if(!title||!year||!genres.length||(!posterFile)||(!movieFile&&!trailer)||!desc){
+    alert("⚠️ Please fill in all required fields!");
+    return;
   }
-  document.getElementById("modalDesc").innerText=m.description;
-  document.getElementById("modalAddToList").onclick=()=>addToWatchlist(i);
+
+  const posterURL = await uploadFile(posterFile, "posters/"+Date.now()+"_"+posterFile.name);
+  let movieURL = "";
+  if(movieFile) movieURL = await uploadFile(movieFile, "movies/"+Date.now()+"_"+movieFile.name);
+
+  const movieData = { title, year, genres, poster: posterURL, video: movieURL, trailer, description: desc };
+  addMovieToFirebase(movieData);
+  alert("✅ Movie added!");
+});
+
+// Search & Filters
+searchInput.addEventListener("input", renderMovies);
+genreFilter.addEventListener("change", renderMovies);
+yearFilter.addEventListener("change", renderMovies);
+
+// Modal
+async function viewDetails(id){
+  const movie = movies.find(m=>m.id===id);
+  document.getElementById("modalTitle").innerText = movie.title;
+  document.getElementById("modalYear").innerText = "Year: "+movie.year;
+  document.getElementById("modalGenres").innerText = "Genres: "+movie.genres.join(", ");
+  const player = document.getElementById("modalPlayer");
+  if(movie.video) player.innerHTML=`<video controls src="${movie.video}"></video>`;
+  else if(movie.trailer) player.innerHTML=`<iframe src="https://www.youtube.com/embed/${movie.trailer.split('v=')[1]}" frameborder="0" allowfullscreen></iframe>`;
+  else player.innerHTML="<p>No video available</p>";
+  document.getElementById("modalDesc").innerText = movie.description;
   document.getElementById("movieModal").style.display="flex";
 }
-
-function closeModal(id){
-  document.getElementById(id).style.display="none";
-  if(id==="movieModal") document.getElementById("modalPlayer").innerHTML="";
-}
-
-function addToWatchlist(i){
-  const m=movies[i];
-  if(watchlist.some(w=>w.title===m.title)){ alert("⚠️ Already in list!"); return; }
-  watchlist.push(m); saveWatchlist(); updateWatchlistCount(); alert(`✅ "${m.title}" added!`);
-}
-
-function updateWatchlistCount(){ watchlistBtn.textContent=`Watchlist (${watchlist.length})`; }
-
-watchlistBtn.addEventListener("click",()=>{
-  const container=document.getElementById("watchlistContainer");
-  container.innerHTML="";
-  if(watchlist.length===0){ container.innerHTML="<p>No movies yet.</p>"; }
-  else{
-    watchlist.forEach((m,index)=>{
-      const div=document.createElement("div");
-      div.className="watchlist-card";
-      div.innerHTML=`
-        <img src="${m.poster}" alt="${m.title}">
-        <h4>${m.title}</h4>
-        <p>${m.year} · ${m.genres.join(", ")}</p>
-        <button class="remove-btn" onclick="removeFromWatchlist(${index})">Remove</button>`;
-      container.appendChild(div);
-    });
-  }
-  document.getElementById("watchlistModal").style.display="flex";
-});
-
-function removeFromWatchlist(index){
-  watchlist.splice(index,1); saveWatchlist(); updateWatchlistCount();
-  document.getElementById("watchlistToggle").click();
-}
-
-// ----- Admin Panel -----
-document.getElementById("adminLogin").addEventListener("click",()=>{
-  const pwd=prompt("Enter admin password:");
-  if(pwd==="@Stone001"){ 
-    document.getElementById("adminPanel").style.display="block"; 
-    renderAdminMovies();
-    alert("✅ Admin mode activated!"); 
-  } else alert("❌ Wrong password!");
-});
-
-document.getElementById("addMovieBtn").addEventListener("click", async ()=>{
-  const title=document.getElementById("movieTitle").value.trim();
-  const year=document.getElementById("movieYear").value.trim();
-  const genres=document.getElementById("movieGenres").value.trim().split(",").map(g=>g.trim()).filter(Boolean);
-  const desc=document.getElementById("movieDesc").value.trim();
-  const posterFile=document.getElementById("moviePosterFile").files[0];
-  const posterURL=document.getElementById("moviePosterURL").value.trim();
-  const movieFile=document.getElementById("movieFile").files[0];
-  const trailer=document.getElementById("movieTrailer").value.trim();
-  const episodeFiles=document.getElementById("seriesEpisodes").files;
-
-  if(!title||!year||!genres.length||(!posterFile&&!posterURL)||(!movieFile&&!trailer&&!episodeFiles.length)||!desc){
-    alert("⚠️ Please fill in all required fields!"); return;
-  }
-
-  const posterSrc = posterFile ? await new Promise(res=>{
-    const r=new FileReader();
-    r.onload=e=>res(e.target.result);
-    r.readAsDataURL(posterFile);
-  }) : posterURL;
-
-  const movieId = "movie_"+Date.now();
-  if(movieFile) await saveFile(movieId, movieFile);
-
-  const episodeIds=[];
-  for(let f of episodeFiles){
-    const eid="ep_"+Date.now()+"_"+Math.random();
-    await saveFile(eid, f);
-    episodeIds.push(eid);
-  }
-
-  const movieData = { title, year, genres, poster: posterSrc, fileId: movieFile ? movieId : null, trailer: trailer||"", description: desc, episodeIds };
-  movies.push(movieData);
-  saveMovies(); renderMovies(); populateFilters(); renderAdminMovies();
-  alert(`✅ Movie/Series "${title}" added!`);
-  document.querySelectorAll("#adminPanel input, #adminPanel textarea").forEach(el=>el.value="");
-});
-
-function renderAdminMovies(){
-  const container=document.getElementById("adminMovieList");
-  container.innerHTML="";
-  if(movies.length===0){ container.innerHTML="<p>No movies added yet.</p>"; return; }
-  movies.forEach((m,i)=>{
-    const div=document.createElement("div");
-    div.style.border="1px solid #333";
-    div.style.padding="10px";
-    div.style.margin="5px 0";
-    div.style.borderRadius="6px";
-    div.innerHTML=`
-      <strong>${m.title}</strong> (${m.year}) - ${m.genres.join(", ")}
-      <div style="margin-top:6px;">
-        <button onclick="editMovie(${i})">✏️ Edit</button>
-        <button onclick="deleteMovie(${i})">🗑️ Delete</button>
-      </div>`;
-    container.appendChild(div);
-  });
-}
-
-function deleteMovie(index){
-  if(confirm("Are you sure you want to delete this movie?")){
-    const m=movies[index];
-    if(m.fileId) { const tx=db.transaction("files","readwrite"); tx.objectStore("files").delete(m.fileId); }
-    if(m.episodeIds) { const tx=db.transaction("files","readwrite"); m.episodeIds.forEach(eid=>tx.objectStore("files").delete(eid)); }
-    movies.splice(index,1);
-    saveMovies(); renderMovies(); populateFilters(); renderAdminMovies();
-  }
-}
-
-function editMovie(index){
-  const m=movies[index];
-  document.getElementById("movieTitle").value=m.title;
-  document.getElementById("movieYear").value=m.year;
-  document.getElementById("movieGenres").value=m.genres.join(", ");
-  document.getElementById("movieDesc").value=m.description;
-  document.getElementById("movieTrailer").value=m.trailer;
-  document.getElementById("seriesEpisodes").value="";
-  alert("✏️ Edit the details above, then click 'Add Movie/Series' to overwrite.");
-  deleteMovie(index);
-}
-
-// ----- Search & Filters -----
-searchInput.addEventListener("input",()=>renderMovies());
-genreFilter.addEventListener("change",()=>renderMovies());
-yearFilter.addEventListener("change",()=>renderMovies());
-
-function updateWatchlistCount(){ watchlistBtn.textContent=`Watchlist (${watchlist.length})`; }
-
-// ----- Load all movies -----
-function loadAllMovies(){
-  renderMovies(); populateFilters(); updateWatchlistCount();
-}
-
+function closeModal(id){ document.getElementById(id).style.display="none"; }
 </script>
 </body>
 </html>
