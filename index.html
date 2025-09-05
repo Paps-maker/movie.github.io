@@ -125,10 +125,12 @@ function convertYouTubeLink(url) {
     } else if (url.includes("youtu.be/")) {
       videoId = url.split("youtu.be/")[1].split("?")[0];
     } else {
-      return url;
+      return url; // fallback
     }
-    return `https://www.youtube.com/embed/${videoId}`; // autoplay removed
-  } catch { return url; }
+    return `https://www.youtube.com/embed/${videoId}?rel=0`; // proper embed
+  } catch {
+    return url;
+  }
 }
 
 function viewDetails(i) {
