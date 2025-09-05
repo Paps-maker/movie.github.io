@@ -45,10 +45,10 @@ textarea { resize:vertical; min-height:80px; }
 .remove-btn:hover { background:#c82333; }
 .episode-list { margin-top:10px; }
 .episode-list button { margin:2px; font-size:0.8rem; }
-/* Progress Bar Styles */
-#progressContainer { grid-column: span 2; margin-top: 10px; background: #222; border: 1px solid #00ff66; border-radius: 6px; overflow: hidden; height: 20px; width: 100%; }
-#progressBar { height: 100%; width: 0%; background: #00ff66; text-align: center; color: #000; font-size: 12px; line-height: 20px; }
-#progressText { color: var(--accent); font-size: 12px; margin-bottom: 3px; }
+
+/* Upload progress bar */
+#uploadProgress { width:100%; background:#222; border-radius:6px; margin-top:10px; display:none; }
+#uploadProgressBar { width:0%; height:20px; background:var(--accent); border-radius:6px; text-align:center; font-size:12px; color:#000; }
 </style>
 </head>
 <body>
@@ -79,11 +79,8 @@ textarea { resize:vertical; min-height:80px; }
     <div class="form-control" style="grid-column: span 2;">
       <label>Description</label><textarea id="movieDesc"></textarea>
     </div>
-    <div id="progressContainer" style="grid-column: span 2;">
-      <div id="progressText">Progress: 0%</div>
-      <div id="progressBar"></div>
-    </div>
   </div>
+  <div id="uploadProgress"><div id="uploadProgressBar">0%</div></div>
   <div class="submit-row">
     <button id="addMovieBtn">Add Movie/Series</button>
     <button id="editMovieBtn" style="display:none;">Save Changes</button>
@@ -116,297 +113,121 @@ textarea { resize:vertical; min-height:80px; }
 <script>
 let movies = [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
-let editIndex=null;
 
-const grid=document.getElementById("grid");
-const searchInput=document.getElementById("search");
-const genreFilter=document.getElementById("genreFilter");
-const yearFilter=document.getElementById("yearFilter");
-
-// Load movies from JSON
-async function loadMovies(){
-  try{
-    const res=await fetch("movies.json");
-    const json=await res.json();
-    movies=json;
-    renderMovies();
-    populateFilters();
-    renderAdminMovies();
-  }catch(e){ console.warn("Failed loading movies.json",e); }
-}
-loadMovies();
-
-// Save movies to JSON (backend)
-async function saveMoviesToJSON() {
-  try {
-    const res = await fetch('save_movies.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(movies)
-    });
-    const data = await res.json();
-    if(data.status !== "success") console.warn("Failed to save movies:", data.message);
-  } catch(e) { console.error("Error saving movies:", e); }
-}
-
-function renderMovies(){
-  grid.innerHTML="";
-  const searchText=searchInput.value.toLowerCase();
-  const genre=genreFilter.value;
-  const year=yearFilter.value;
-  const filtered=movies.filter(m=>{
-    const s=m.title.toLowerCase().includes(searchText)||m.description.toLowerCase().includes(searchText);
-    const g=genre?m.genres.includes(genre):true;
-    const y=year?m.year==year:true;
-    return s&&g&&y;
-  });
-  filtered.forEach((m,i)=>{
-    const card=document.createElement("div");
-    card.className="card";
-    card.innerHTML=`<img class="poster" src="${m.poster}" alt="${m.title}"><div class="card-body"><h3 class="movie-title">${m.title}</h3><div class="meta">${m.year} · ${m.genres.join(", ")}</div><div class="card-actions"><button class="btn" onclick="viewDetails(${i})">Details</button><button class="btn" onclick="addToWatchlist(${i})">Add to List</button></div></div>`;
-    grid.appendChild(card);
-  });
-}
-
-function populateFilters(){
-  genreFilter.innerHTML='<option value="">All genres</option>'; yearFilter.innerHTML='<option value="">All years</option>';
-  let genres=new Set(); let years=new Set();
-  movies.forEach(m=>{ m.genres.forEach(g=>genres.add(g)); years.add(m.year); });
-  genres.forEach(g=>{ const o=document.createElement("option"); o.value=g; o.innerText=g; genreFilter.appendChild(o); });
-  [...years].sort((a,b)=>b-a).forEach(y=>{ const o=document.createElement("option"); o.value=y; o.innerText=y; yearFilter.appendChild(o); });
-}
-
-function convertYouTubeLink(url){
-  if(url.includes("youtube.com/watch?v=")){ const vid=url.split("v=")[1].split("&")[0]; return `https://www.youtube.com/embed/${vid}`; }
-  if(url.includes("youtu.be/")){ const vid=url.split("youtu.be/")[1].split("?")[0]; return `https://www.youtube.com/embed/${vid}`; }
-  return url;
-}
-
-function viewDetails(i){
-  const m=movies[i];
-  document.getElementById("modalTitle").innerText=m.title;
-  document.getElementById("modalYear").innerText="Year: "+m.year;
-  document.getElementById("modalGenres").innerText="Genres: "+m.genres.join(", ");
-  const player=document.getElementById("modalPlayer");
-  const epList=document.getElementById("episodeList");
-  epList.innerHTML="";
-  
-  if(m.fileId){
-    player.innerHTML=`<video controls src="${m.fileId}" autoplay></video>`;
-  } else if(m.trailer){
-    player.innerHTML=`<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
-  } else {
-    player.innerHTML="<p>No video available</p>";
-  }
-
-  if(m.episodeIds && m.episodeIds.length>0){
-    m.episodeIds.forEach((ep,idx)=>{
-      const btn=document.createElement("button");
-      btn.textContent="Episode "+(idx+1);
-      btn.onclick=()=>{ player.innerHTML=`<video controls src="${ep}" autoplay></video>`; };
-      epList.appendChild(btn);
-    });
-  }
-
-  document.getElementById("modalDesc").innerText=m.description;
-  document.getElementById("modalAddToList").onclick=()=>addToWatchlist(i);
-  document.getElementById("movieModal").style.display="flex";
-}
-
-function closeModal(id){
-  document.getElementById(id).style.display="none";
-  if(id==="movieModal") document.getElementById("modalPlayer").innerHTML="";
-}
-
-function addToWatchlist(i){
-  const m=movies[i];
-  if(watchlist.some(w=>w.title===m.title)){ alert("Already in list"); return; }
-  watchlist.push(m);
-  localStorage.setItem("watchlist",JSON.stringify(watchlist));
-  updateWatchlistCount();
-  alert("Added!");
-}
-
-function updateWatchlistCount(){
-  document.getElementById("watchlistToggle").textContent=`Watchlist (${watchlist.length})`;
-}
-
-document.getElementById("watchlistToggle").addEventListener("click",()=>{
-  const container=document.getElementById("watchlistContainer");
-  container.innerHTML="";
-  if(watchlist.length===0) container.innerHTML="<p>No movies yet.</p>";
-  else watchlist.forEach((m,i)=>{
-    const div=document.createElement("div");
-    div.className="watchlist-card";
-    div.innerHTML=`<img src="${m.poster}" alt="${m.title}"><h4>${m.title}</h4><p>${m.year} · ${m.genres.join(", ")}</p><button class="remove-btn" onclick="removeFromWatchlist(${i})">Remove</button>`;
-    container.appendChild(div);
-  });
-  document.getElementById("watchlistModal").style.display="flex";
-});
-
-function removeFromWatchlist(i){
-  watchlist.splice(i,1);
-  localStorage.setItem("watchlist",JSON.stringify(watchlist));
-  updateWatchlistCount();
-  document.getElementById("watchlistToggle").click();
-}
-
-// Admin login
-document.getElementById("adminLogin").addEventListener("click",()=>{
-  const pwd=prompt("Enter admin password:");
-  if(pwd==="@Stone001"){
-    document.getElementById("adminPanel").style.display="block";
-    renderAdminMovies();
-    alert("Admin mode activated");
-  } else alert("Wrong password");
-});
-
-// Upload file with progress
-async function uploadFile(file, type){
-  return new Promise((resolve, reject)=>{
+// File uploader with progress
+function uploadFileWithProgress(file, type) {
+  return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const form = new FormData();
     form.append("file", file);
     form.append("type", type);
 
-    xhr.upload.addEventListener("progress", e=>{
-      if(e.lengthComputable){
+    const progressBar = document.getElementById("uploadProgressBar");
+    document.getElementById("uploadProgress").style.display = "block";
+
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable) {
         const percent = Math.round((e.loaded / e.total) * 100);
-        document.getElementById("progressBar").style.width = percent + "%";
-        document.getElementById("progressBar").innerText = percent + "%";
-        document.getElementById("progressText").innerText = `Uploading ${file.name} (${percent}%)`;
+        progressBar.style.width = percent + "%";
+        progressBar.textContent = percent + "%";
       }
-    });
+    };
 
-    xhr.onreadystatechange = ()=>{
-      if(xhr.readyState === 4){
-        if(xhr.status === 200){
-          try{
-            const data = JSON.parse(xhr.responseText);
-            if(data.status==="success") resolve(data.url);
-            else reject("Upload failed for "+file.name);
-          } catch(err){ reject(err); }
-        } else reject("Upload failed with status "+xhr.status);
-      }
-    }
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          if (res.status === "success") resolve(res.url);
+          else reject(res.message);
+        } catch(err) { reject("Invalid response"); }
+      } else reject("Upload failed");
+    };
 
-    xhr.open("POST","upload.php",true);
+    xhr.onerror = () => reject("XHR error");
     xhr.send(form);
   });
 }
 
-// Add Movie with progress
-document.getElementById("addMovieBtn").addEventListener("click", async ()=>{
-  const title=document.getElementById("movieTitle").value.trim();
-  const year=document.getElementById("movieYear").value.trim();
-  const genres=document.getElementById("movieGenres").value.trim().split(",").map(g=>g.trim()).filter(Boolean);
-  const desc=document.getElementById("movieDesc").value.trim();
-  const posterFile=document.getElementById("moviePosterFile").files[0];
-  const posterURL=document.getElementById("moviePosterURL").value.trim();
-  const movieFile=document.getElementById("movieFile").files[0];
-  const trailer=document.getElementById("movieTrailer").value.trim();
-  const episodeFiles=document.getElementById("seriesEpisodes").files;
-
-  if(!title||!year||!genres.length||(!posterFile&&!posterURL)||(!movieFile&&!trailer&&!episodeFiles.length)||!desc){
-    alert("Please fill all fields"); 
-    return;
-  }
-
-  // Reset progress
-  document.getElementById("progressBar").style.width="0%";
-  document.getElementById("progressBar").innerText="0%";
-  document.getElementById("progressText").innerText="Starting upload...";
-
-  try{
-    let posterSrc = posterURL;
-    if(posterFile) posterSrc = await uploadFile(posterFile, "poster");
-
-    let movieSrc = "";
-    if(movieFile) movieSrc = await uploadFile(movieFile, "movie");
-
-    let episodes = [];
-    for(let i=0;i<episodeFiles.length;i++){
-      const epURL = await uploadFile(episodeFiles[i], "episode");
-      episodes.push(epURL);
-    }
-
-    const newMovie = {
-      title,
-      year,
-      genres,
-      poster:posterSrc,
-      fileId:movieSrc,
-      trailer,
-      description:desc,
-      episodeIds:episodes
-    };
-
-    movies.push(newMovie);
+// Load movies
+async function loadMovies() {
+  try {
+    const res = await fetch("movies.json");
+    movies = await res.json();
     renderMovies();
-    renderAdminMovies();
-    await saveMoviesToJSON();
+  } catch (e) { console.warn("Failed to load movies.json", e); }
+}
+loadMovies();
 
-    document.getElementById("progressBar").style.width="100%";
-    document.getElementById("progressBar").innerText="Done!";
-    document.getElementById("progressText").innerText="All uploads completed!";
-    alert("Movie/Series added successfully");
-
-  } catch(e){
-    console.error(e);
-    document.getElementById("progressBar").style.width="100%";
-    document.getElementById("progressBar").innerText="Failed!";
-    document.getElementById("progressText").innerText="Upload failed!";
-    alert("Upload failed, check console.");
-  }
-});
-
-// Admin movie list
-function renderAdminMovies(){
-  const list=document.getElementById("adminMovieList");
-  list.innerHTML="";
-  movies.forEach((m,i)=>{
-    const div=document.createElement("div");
-    div.innerHTML=`<strong>${m.title}</strong> (${m.year}) <button onclick="editMovie(${i})">Edit</button> <button onclick="deleteMovie(${i})">Delete</button>`;
-    list.appendChild(div);
+function renderMovies() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  movies.forEach((m, i) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<img class="poster" src="${m.poster}" alt="${m.title}">
+      <div class="card-body">
+        <h3 class="movie-title">${m.title}</h3>
+        <div class="meta">${m.year} · ${m.genres.join(", ")}</div>
+        <div class="card-actions">
+          <button class="btn" onclick="viewDetails(${i})">Details</button>
+          <button class="btn" onclick="addToWatchlist(${i})">Add to List</button>
+        </div>
+      </div>`;
+    grid.appendChild(card);
   });
 }
 
-function editMovie(i){
-  const m=movies[i];
-  document.getElementById("movieTitle").value=m.title;
-  document.getElementById("movieYear").value=m.year;
-  document.getElementById("movieGenres").value=m.genres.join(",");
-  document.getElementById("movieDesc").value=m.description;
-  document.getElementById("moviePosterURL").value=m.poster;
-  document.getElementById("addMovieBtn").style.display="none";
-  document.getElementById("editMovieBtn").style.display="inline";
-  editIndex=i;
+function convertYouTubeLink(url) {
+  if(url.includes("youtube.com/watch?v=")) return "https://www.youtube.com/embed/" + url.split("v=")[1].split("&")[0];
+  if(url.includes("youtu.be/")) return "https://www.youtube.com/embed/" + url.split("youtu.be/")[1].split("?")[0];
+  return url;
 }
 
-document.getElementById("editMovieBtn").addEventListener("click",async()=>{
-  const m=movies[editIndex];
-  m.title=document.getElementById("movieTitle").value.trim();
-  m.year=document.getElementById("movieYear").value.trim();
-  m.genres=document.getElementById("movieGenres").value.trim().split(",").map(g=>g.trim()).filter(Boolean);
-  m.description=document.getElementById("movieDesc").value.trim();
-  m.poster=document.getElementById("moviePosterURL").value.trim();
-  await saveMoviesToJSON();
+function viewDetails(i) {
+  const m = movies[i];
+  document.getElementById("modalTitle").innerText = m.title;
+  document.getElementById("modalYear").innerText = "Year: " + m.year;
+  document.getElementById("modalGenres").innerText = "Genres: " + m.genres.join(", ");
+  const player = document.getElementById("modalPlayer");
+  player.innerHTML = "";
+
+  if(m.fileId) {
+    player.innerHTML = `<video controls src="${m.fileId}" autoplay></video>`;
+  } else if(m.trailer) {
+    player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
+  } else {
+    player.innerHTML = "<p>No video available</p>";
+  }
+
+  document.getElementById("movieModal").style.display="flex";
+}
+
+// Add Movie
+document.getElementById("addMovieBtn").addEventListener("click", async () => {
+  const title = document.getElementById("movieTitle").value.trim();
+  const year = document.getElementById("movieYear").value.trim();
+  const genres = document.getElementById("movieGenres").value.trim().split(",").map(g=>g.trim()).filter(Boolean);
+  const desc = document.getElementById("movieDesc").value.trim();
+  const posterFile = document.getElementById("moviePosterFile").files[0];
+  const posterURL = document.getElementById("moviePosterURL").value.trim();
+  const movieFile = document.getElementById("movieFile").files[0];
+  const trailer = document.getElementById("movieTrailer").value.trim();
+
+  if(!title || !year || !genres.length || (!posterFile && !posterURL) || (!movieFile && !trailer)) {
+    alert("Please fill all fields"); return;
+  }
+
+  let posterSrc = posterURL;
+  if (posterFile) posterSrc = await uploadFileWithProgress(posterFile, "poster");
+
+  let movieSrc = "";
+  if (movieFile) movieSrc = await uploadFileWithProgress(movieFile, "movie");
+
+  const newMovie = { title, year, genres, poster:posterSrc, fileId:movieSrc, trailer, description:desc };
+  movies.push(newMovie);
   renderMovies();
-  renderAdminMovies();
-  document.getElementById("addMovieBtn").style.display="inline";
-  document.getElementById("editMovieBtn").style.display="none";
-  editIndex=null;
-  alert("Movie updated");
+  alert("Movie added!");
 });
-
-function deleteMovie(i){
-  if(confirm("Delete this movie?")){ movies.splice(i,1); saveMoviesToJSON(); renderMovies(); renderAdminMovies(); }
-}
-
-searchInput.addEventListener("input", renderMovies);
-genreFilter.addEventListener("change", renderMovies);
-yearFilter.addEventListener("change", renderMovies);
-updateWatchlistCount();
 </script>
 </body>
 </html>
