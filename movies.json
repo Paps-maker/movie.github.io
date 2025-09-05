@@ -1,0 +1,103 @@
+[
+  {
+    "title": "Inception",
+    "year": 2010,
+    "genres": ["Action", "Sci-Fi", "Thriller"],
+    "poster": "img/inception.jpg",
+    "fileUrl": "movies/inception.mp4",
+    "trailer": "https://www.youtube.com/watch?v=YoHD9XEInc0",
+    "description": "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a CEO.",
+    "episodeIds": []
+  },
+  {
+    "title": "The Matrix",
+    "year": 1999,
+    "genres": ["Action", "Sci-Fi"],
+    "poster": "img/matrix.jpg",
+    "fileUrl": "movies/matrix.mp4",
+    "trailer": "https://www.youtube.com/watch?v=vKQi3bBA1y8",
+    "description": "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
+    "episodeIds": []
+  },
+  {
+    "title": "Spider-Man: No Way Home",
+    "year": 2021,
+    "genres": ["Action", "Adventure", "Fantasy"],
+    "poster": "img/spiderman.jpg",
+    "fileUrl": "movies/spiderman.mp4",
+    "trailer": "https://www.youtube.com/watch?v=JfVOs4VSpmA",
+    "description": "Peter Parker seeks help from Doctor Strange to restore his secret identity, but when a spell goes wrong, dangerous foes from other universes start to appear.",
+    "episodeIds": []
+  },
+  {
+    "title": "Interstellar",
+    "year": 2014,
+    "genres": ["Adventure", "Drama", "Sci-Fi"],
+    "poster": "img/interstellar.jpg",
+    "fileUrl": "movies/interstellar.mp4",
+    "trailer": "https://www.youtube.com/watch?v=zSWdZVtXT7E",
+    "description": "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+    "episodeIds": []
+  },
+  {
+    "title": "The Dark Knight",
+    "year": 2008,
+    "genres": ["Action", "Crime", "Drama"],
+    "poster": "img/darkknight.jpg",
+    "fileUrl": "movies/darkknight.mp4",
+    "trailer": "https://www.youtube.com/watch?v=EXeTwQWrcwY",
+    "description": "Batman faces the Joker, a criminal mastermind who seeks to plunge Gotham City into anarchy.",
+    "episodeIds": []
+  },
+  {
+    "title": "Avengers: Endgame",
+    "year": 2019,
+    "genres": ["Action", "Adventure", "Sci-Fi"],
+    "poster": "img/endgame.jpg",
+    "fileUrl": "movies/endgame.mp4",
+    "trailer": "https://www.youtube.com/watch?v=TcMBFSGVi1c",
+    "description": "The Avengers assemble once more to undo the damage caused by Thanos and restore balance to the universe.",
+    "episodeIds": []
+  },
+  {
+    "title": "The Lord of the Rings: The Fellowship of the Ring",
+    "year": 2001,
+    "genres": ["Adventure", "Drama", "Fantasy"],
+    "poster": "img/lotr1.jpg",
+    "fileUrl": "movies/lotr1.mp4",
+    "trailer": "https://www.youtube.com/watch?v=V75dMMIW2B4",
+    "description": "A hobbit named Frodo begins a journey to destroy the One Ring and save Middle-earth from the Dark Lord Sauron.",
+    "episodeIds": []
+  },
+  {
+    "title": "Joker",
+    "year": 2019,
+    "genres": ["Crime", "Drama", "Thriller"],
+    "poster": "img/joker.jpg",
+    "fileUrl": "movies/joker.mp4",
+    "trailer": "https://www.youtube.com/watch?v=zAGVQLHvwOY",
+    "description": "In Gotham City, a mentally troubled comedian embarks on a downward spiral that leads to violent chaos.",
+    "episodeIds": []
+  },
+  {
+    "title": "Frozen II",
+    "year": 2019,
+    "genres": ["Animation", "Adventure", "Comedy"],
+    "poster": "img/frozen2.jpg",
+    "fileUrl": "movies/frozen2.mp4",
+    "trailer": "https://www.youtube.com/watch?v=Zi4LMpSDccc",
+    "description": "Elsa, Anna, Kristoff, and Olaf set out on a dangerous but remarkable journey to save their kingdom.",
+    "episodeIds": []
+  },
+  {
+    "title": "The Lion King",
+    "year": 1994,
+    "genres": ["Animation", "Adventure", "Drama"],
+    "poster": "img/lionking.jpg",
+    "fileUrl": "movies/lionking.mp4",
+    "trailer": "https://www.youtube.com/watch?v=4sj1MT05lAA",
+    "description": "Lion prince Simba flees his kingdom after the murder of his father, only to learn the true meaning of responsibility and bravery.",
+    "episodeIds": []
+  }
+]
+
