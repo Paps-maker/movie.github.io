@@ -1,9 +1,9 @@
 [
   {
-    "title": "Inception",
-    "year": 2010,
-    "genres": ["Action", "Sci-Fi", "Thriller"],
-    "poster": "img/inception.jpg",
+    "title": "Nobody 2",
+    "year": 2025,
+    "genres": ["Action", "Comedy", "Thriller"],
+    "poster": "img/1.jpg",
     "fileUrl": "movies/inception.mp4",
     "trailer": "https://youtu.be/p4QqMKe3rwY?list=RDp4QqMKe3rwY",
     "description": "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a CEO.",
@@ -100,5 +100,6 @@
     "episodeIds": []
   }
 ]
+
 
 
