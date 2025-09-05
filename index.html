@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MovieDrift</title>
+<title>MovieDrift Admin</title>
 <style>
 :root {--bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#ddd; --muted:#888;}
 body {margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);}
@@ -25,29 +25,13 @@ button {cursor:pointer;font-weight:bold;} button:hover {background:#003300;}
 .form-control {display:flex;flex-direction:column;}
 textarea {resize:vertical;min-height:80px;}
 .submit-row {margin-top:15px;text-align:right;}
-.modal {display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);justify-content:center;align-items:center;z-index:1000;overflow-y:auto;}
-.modal-content {background:var(--card-bg);max-width:900px;width:95%;max-height:90vh;overflow-y:auto;border-radius:8px;padding:20px;position:relative;}
-.close {position:absolute;top:10px;right:15px;cursor:pointer;color:var(--accent);font-size:22px;}
-iframe, video {width:100%;height:400px;border-radius:6px;}
-#watchlistModal h2 {color:var(--accent);margin-bottom:15px;}
-#watchlistModal .movie-list {display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:15px;}
-.watchlist-card {background:#111;border-radius:8px;padding:10px;text-align:center;transition:transform 0.2s;}
-.watchlist-card:hover {transform:scale(1.05);background:#181818;}
-.watchlist-card img {width:100%;border-radius:6px;margin-bottom:6px;}
-.remove-btn {margin-top:6px;padding:4px 8px;border:none;border-radius:4px;background:#e63946;color:white;cursor:pointer;font-size:0.8rem;}
-.remove-btn:hover {background:#c82333;}
-.episode-list {margin-top:10px;}
-.episode-list button {margin:2px;font-size:0.8rem;}
 </style>
 </head>
 <body>
 
 <header>
 <div class="logo">MovieDrift</div>
-<div>
 <button id="adminLogin">Admin Login</button>
-<button id="watchlistToggle">Watchlist (0)</button>
-</div>
 </header>
 
 <section id="adminPanel">
@@ -63,36 +47,15 @@ iframe, video {width:100%;height:400px;border-radius:6px;}
 <div class="form-control" style="grid-column: span 2;"><label>Description</label><textarea id="movieDesc"></textarea></div>
 </div>
 <div class="submit-row"><button id="addMovieBtn">Add Movie/Series</button></div>
+
 <h3>📋 Manage Movies</h3>
 <div id="adminMovieList"></div>
 </section>
 
 <div class="grid" id="grid"></div>
 
-<div class="modal" id="movieModal">
-<div class="modal-content">
-<span class="close" onclick="closeModal('movieModal')">&times;</span>
-<h2 id="modalTitle"></h2>
-<p id="modalYear"></p>
-<p id="modalGenres"></p>
-<div id="modalPlayer"></div>
-<div class="episode-list" id="episodeList"></div>
-<p id="modalDesc"></p>
-<button id="modalAddToList">➕ Add to Watchlist</button>
-</div>
-</div>
-
-<div class="modal" id="watchlistModal">
-<div class="modal-content">
-<span class="close" onclick="closeModal('watchlistModal')">&times;</span>
-<h2>📺 Your Watchlist</h2>
-<div class="movie-list" id="watchlistContainer"></div>
-</div>
-</div>
-
 <script>
 let movies = [];
-let watchlist = JSON.parse(localStorage.getItem("watchlist"))||[];
 
 // Admin login
 document.getElementById("adminLogin").addEventListener("click",()=>{
@@ -105,49 +68,50 @@ document.getElementById("adminLogin").addEventListener("click",()=>{
 
 // Load movies.json
 async function loadMovies(){
-    try{
+    try {
         const res = await fetch("movies.json");
         movies = await res.json();
         renderMovies();
         renderAdminMovies();
-        updateWatchlistCount();
     } catch(e){console.error("Failed to load movies.json", e);}
 }
 
 // Render movie grid
 function renderMovies(){
-    const grid=document.getElementById("grid");
+    const grid = document.getElementById("grid");
     grid.innerHTML="";
     movies.forEach((m,i)=>{
-        const card=document.createElement("div");
+        const card = document.createElement("div");
         card.className="card";
         card.innerHTML=`<img class="poster" src="${m.poster}" alt="${m.title}">
         <div class="card-body">
         <h3 class="movie-title">${m.title}</h3>
         <div class="meta">${m.year} · ${m.genres.join(", ")}</div>
-        <div class="card-actions">
-        <button class="btn" onclick="viewDetails(${i})">Details</button>
-        <button class="btn" onclick="addToWatchlist(${i})">Add to Watchlist</button>
-        </div></div>`;
+        </div>`;
         grid.appendChild(card);
     });
 }
 
-// Admin movie list
+// Render admin list
 function renderAdminMovies(){
-    const container=document.getElementById("adminMovieList");
+    const container = document.getElementById("adminMovieList");
     container.innerHTML="";
     movies.forEach((m,i)=>{
-        const div=document.createElement("div");
+        const div = document.createElement("div");
         div.style.border="1px solid #333"; div.style.padding="10px"; div.style.margin="5px 0"; div.style.borderRadius="6px";
         div.innerHTML=`<strong>${m.title}</strong> (${m.year}) <button onclick="deleteMovie(${i})">Delete</button>`;
         container.appendChild(div);
     });
 }
 
-// Delete
+// Delete movie
 function deleteMovie(i){
-    if(confirm("Delete this movie?")){movies.splice(i,1);renderMovies();renderAdminMovies();saveMoviesToServer();}
+    if(confirm("Delete this movie?")){
+        movies.splice(i,1);
+        renderMovies();
+        renderAdminMovies();
+        saveMoviesToServer();
+    }
 }
 
 // Add movie
@@ -162,67 +126,23 @@ document.getElementById("addMovieBtn").addEventListener("click",async()=>{
     const episodeFiles=document.getElementById("seriesEpisodes").files;
     if(!title||!year||!genres.length||(!posterFile)||(!movieFile&&!trailer)||!desc){ alert("Fill all required fields!"); return;}
 
+    // Prepare new movie object
     const newMovie = {title,year,genres,description:desc,trailer,episodeIds:[]};
     movies.push(newMovie);
 
-    const formData=new FormData();
+    // Upload to server via FormData
+    const formData = new FormData();
     formData.append('password','@Stone001');
     formData.append('movies',JSON.stringify(movies));
-    formData.append('poster0',posterFile);
-    if(movieFile) formData.append('file0',movieFile);
-    for(let j=0;j<episodeFiles.length;j++) formData.append('episodes0[]',episodeFiles[j]);
+    formData.append('poster0', posterFile);
+    if(movieFile) formData.append('file0', movieFile);
+    for(let j=0;j<episodeFiles.length;j++) formData.append('episodes0[]', episodeFiles[j]);
 
-    const res=await fetch('upload_movies.php',{method:'POST',body:formData});
-    const result=await res.json();
+    const res = await fetch('upload_movies.php',{method:'POST',body:formData});
+    const result = await res.json();
     if(result.status==='success'){ alert('Movie saved successfully'); loadMovies(); }
     else alert('Error: '+result.message);
 });
-
-// View Details Modal
-function viewDetails(i){
-    const m=movies[i];
-    document.getElementById("modalTitle").textContent=m.title;
-    document.getElementById("modalYear").textContent=m.year;
-    document.getElementById("modalGenres").textContent=m.genres.join(", ");
-    const player=document.getElementById("modalPlayer");
-    if(m.fileUrl){ player.innerHTML=`<video controls src="${m.fileUrl}"></video>`;}
-    else if(m.trailer){ player.innerHTML=`<iframe src="${m.trailer}" frameborder="0" allowfullscreen></iframe>`;}
-    else player.innerHTML="";
-    const epList=document.getElementById("episodeList");
-    epList.innerHTML="";
-    if(m.episodeIds&&m.episodeIds.length){
-        m.episodeIds.forEach((ep,j)=>{
-            const btn=document.createElement("button");
-            btn.textContent=`Episode ${j+1}`;
-            btn.onclick=()=>{player.innerHTML=`<video controls src="${ep}"></video>`;}
-            epList.appendChild(btn);
-        });
-    }
-    document.getElementById("modalAddToList").onclick=()=>{addToWatchlist(i)};
-    document.getElementById("movieModal").style.display="flex";
-}
-function closeModal(id){document.getElementById(id).style.display="none";}
-
-// Watchlist
-function addToWatchlist(i){
-    if(!watchlist.includes(i)){watchlist.push(i);localStorage.setItem("watchlist",JSON.stringify(watchlist));updateWatchlistCount();alert("Added to watchlist!");}
-}
-function updateWatchlistCount(){document.getElementById("watchlistToggle").textContent=`Watchlist (${watchlist.length})`;}
-document.getElementById("watchlistToggle").addEventListener("click",()=>{
-    const container=document.getElementById("watchlistContainer");
-    container.innerHTML="";
-    watchlist.forEach(i=>{
-        const m=movies[i];
-        const div=document.createElement("div");
-        div.className="watchlist-card";
-        div.innerHTML=`<img src="${m.poster}" alt="${m.title}"><div>${m.title}</div><button class="remove-btn" onclick="removeFromWatchlist(${i})">Remove</button>`;
-        container.appendChild(div);
-    });
-    document.getElementById("watchlistModal").style.display="flex";
-});
-function removeFromWatchlist(i){watchlist=watchlist.filter(x=>x!==i);localStorage.setItem("watchlist",JSON.stringify(watchlist));updateWatchlistCount();loadMovies();}
 </script>
-
 </body>
 </html>
-
