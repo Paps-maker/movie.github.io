@@ -117,21 +117,6 @@ function renderMovies() {
   });
 }
 
-// YouTube link converter
-function convertYouTubeLink(url) {
-  try {
-    let videoId = '';
-    if (url.includes("youtube.com/watch?v=")) {
-      videoId = url.split("v=")[1].split("&")[0];
-    } else if (url.includes("youtu.be/")) {
-      videoId = url.split("youtu.be/")[1].split("?")[0];
-    } else {
-      return url; // external or direct link
-    }
-    return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-  } catch { return url; }
-}
-
 function viewDetails(i) {
   const m = movies[i];
   document.getElementById("modalTitle").innerText = m.title;
@@ -142,17 +127,15 @@ function viewDetails(i) {
   player.innerHTML = "";
   episodeList.innerHTML = "";
 
-  if (m.fileUrl && m.fileUrl.trim() !== "") {
-    player.innerHTML = `<video controls src="${m.fileUrl}" autoplay></video>`;
-  } else if (m.trailer && m.trailer.trim() !== "") {
-    player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
+  if(m.fileUrl && m.fileUrl.trim() !== "") {
+    player.innerHTML = `<video controls src="${m.fileUrl}"></video>`;
   } else {
-    player.innerHTML = "<p>No video available</p>";
+    player.innerHTML = "<p>No local video. Click 'Watch' to view externally.</p>";
   }
 
   if(m.watchLink) {
     const watchBtn = document.createElement("button");
-    watchBtn.textContent = "Watch Externally";
+    watchBtn.textContent = "▶ Watch Trailer";
     watchBtn.className = "btn";
     watchBtn.style.marginTop = "10px";
     watchBtn.onclick = () => window.open(m.watchLink, "_blank");
@@ -164,7 +147,7 @@ function viewDetails(i) {
       const btn = document.createElement("button");
       btn.textContent = "Episode " + (idx + 1);
       btn.onclick = () => {
-        player.innerHTML = `<video controls src="${ep}" autoplay></video>`;
+        player.innerHTML = `<video controls src="${ep}"></video>`;
       };
       episodeList.appendChild(btn);
     });
@@ -210,6 +193,8 @@ function removeFromWatchlist(index) {
 function saveWatchlist() { localStorage.setItem("watchlist", JSON.stringify(watchlist)); }
 function updateWatchlistButton() { document.getElementById("watchlistToggle").textContent = `Watchlist (${watchlist.length})`; }
 updateWatchlistButton();
+document.getElementById("watchlistToggle").onclick = showWatchlist;
+
 function closeModal(id) { document.getElementById(id).style.display="none"; }
 </script>
 </body>
