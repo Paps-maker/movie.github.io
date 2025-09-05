@@ -6,9 +6,7 @@
 <link rel="icon" href="img/logo.png" type="image/png">
 <title>MovieDrift</title>
 <style>
-:root {
-  --bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#ddd; --muted:#888;
-}
+:root { --bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#ddd; --muted:#888; }
 body { margin:0; font-family:Arial,sans-serif; background:var(--bg); color:var(--text); }
 header { display:flex; justify-content:space-between; align-items:center; background:#111; padding:10px 20px; flex-wrap:wrap; }
 .logo { font-size:24px; font-weight:bold; color: var(--accent); }
@@ -45,8 +43,6 @@ textarea { resize:vertical; min-height:80px; }
 .remove-btn:hover { background:#c82333; }
 .episode-list { margin-top:10px; }
 .episode-list button { margin:2px; font-size:0.8rem; }
-
-/* Upload progress bar */
 #uploadProgress { width:100%; background:#222; border-radius:6px; margin-top:10px; display:none; }
 #uploadProgressBar { width:0%; height:20px; background:var(--accent); border-radius:6px; text-align:center; font-size:12px; color:#000; }
 </style>
@@ -81,9 +77,7 @@ textarea { resize:vertical; min-height:80px; }
     </div>
   </div>
   <div id="uploadProgress"><div id="uploadProgressBar">0%</div></div>
-  <div class="submit-row">
-    <button id="addMovieBtn">Add Movie/Series</button>
-  </div>
+  <div class="submit-row"><button id="addMovieBtn">Add Movie/Series</button></div>
   <h3>📋 Manage Movies</h3>
   <div id="adminMovieList"></div>
 </section>
@@ -114,25 +108,21 @@ let movies = [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
 const ADMIN_PASSWORD = "@Stone001";
 
-// Watchlist toggle
 document.getElementById("watchlistToggle").addEventListener("click", showWatchlist);
-
-// Admin login
 document.getElementById("adminLogin").addEventListener("click", () => {
   const pwd = prompt("Enter admin password:");
   if (pwd === ADMIN_PASSWORD) {
     document.getElementById("adminPanel").style.display = "block";
-    alert("✅ Admin mode activated");
     loadMovies();
-  } else {
-    alert("❌ Wrong password");
-  }
+  } else alert("❌ Wrong password");
 });
 
-// File uploader with progress
+// ✅ FIXED uploader
 function uploadFileWithProgress(file, type) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
+    xhr.open("POST", "upload_handler.php"); // 🔑 OPEN before send()
+
     const form = new FormData();
     form.append("file", file);
     form.append("type", type);
@@ -154,59 +144,52 @@ function uploadFileWithProgress(file, type) {
           const res = JSON.parse(xhr.responseText);
           if (res.status === "success") resolve(res.url);
           else reject(res.message);
-        } catch(err) { reject("Invalid response"); }
+        } catch { reject("Invalid response"); }
       } else reject("Upload failed");
     };
 
     xhr.onerror = () => reject("XHR error");
-    xhr.send(form);
+    xhr.send(form); // ✅ send() after open()
   });
 }
 
-// Load movies.json
 async function loadMovies() {
   try {
     const res = await fetch("movies.json");
     movies = await res.json();
     renderMovies();
     renderAdminMovies();
-  } catch (e) { movies = []; }
+  } catch { movies = []; }
 }
 
-// Save movies.json
 async function saveMovies() {
   await fetch("save_movies.php", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
+    method:"POST", headers:{"Content-Type":"application/json"},
     body: JSON.stringify(movies)
   });
 }
 
-// Render movies in grid
 function renderMovies() {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
-  movies.forEach((m, i) => {
+  movies.forEach((m,i) => {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `<img class="poster" src="${m.poster}" alt="${m.title}">
-      <div class="card-body">
-        <h3 class="movie-title">${m.title}</h3>
-        <div class="meta">${m.year} · ${m.genres.join(", ")}</div>
-        <div class="card-actions">
-          <button class="btn" onclick="viewDetails(${i})">Details</button>
-          <button class="btn" onclick="addToWatchlist(${i})">Add to List</button>
-        </div>
-      </div>`;
+      <div class="card-body"><h3 class="movie-title">${m.title}</h3>
+      <div class="meta">${m.year} · ${m.genres.join(", ")}</div>
+      <div class="card-actions">
+        <button class="btn" onclick="viewDetails(${i})">Details</button>
+        <button class="btn" onclick="addToWatchlist(${i})">Add to List</button>
+      </div></div>`;
     grid.appendChild(card);
   });
 }
 
-// Render admin movie list
 function renderAdminMovies() {
   const list = document.getElementById("adminMovieList");
   list.innerHTML = "";
-  movies.forEach((m, i) => {
+  movies.forEach((m,i) => {
     const div = document.createElement("div");
     div.className = "watchlist-card";
     div.innerHTML = `<h4>${m.title} (${m.year})</h4>
@@ -215,142 +198,103 @@ function renderAdminMovies() {
   });
 }
 
-// Delete movie
 async function deleteMovie(i) {
   if (!confirm("Delete this movie?")) return;
-  movies.splice(i, 1);
+  movies.splice(i,1);
   await saveMovies();
-  renderMovies();
-  renderAdminMovies();
+  renderMovies(); renderAdminMovies();
 }
 
-// Add movie
 document.getElementById("addMovieBtn").addEventListener("click", async () => {
   try {
-    const title = document.getElementById("movieTitle").value.trim();
-    const year = document.getElementById("movieYear").value.trim();
-    const genres = document.getElementById("movieGenres").value.split(",").map(g=>g.trim()).filter(Boolean);
-    const desc = document.getElementById("movieDesc").value.trim();
+    const title = movieTitle.value.trim();
+    const year = movieYear.value.trim();
+    const genres = movieGenres.value.split(",").map(g=>g.trim()).filter(Boolean);
+    const desc = movieDesc.value.trim();
 
-    let poster = document.getElementById("moviePosterURL").value.trim();
-    const posterFile = document.getElementById("moviePosterFile").files[0];
-    if (!poster && posterFile) poster = await uploadFileWithProgress(posterFile,"poster");
+    let poster = moviePosterURL.value.trim();
+    if (!poster && moviePosterFile.files[0])
+      poster = await uploadFileWithProgress(moviePosterFile.files[0],"poster");
 
     let fileId = "";
-    const movieFile = document.getElementById("movieFile").files[0];
-    if (movieFile) fileId = await uploadFileWithProgress(movieFile,"movie");
+    if (movieFile.files[0])
+      fileId = await uploadFileWithProgress(movieFile.files[0],"movie");
 
-    let trailer = document.getElementById("movieTrailer").value.trim();
-    if (trailer.includes("youtube.com") || trailer.includes("youtu.be")) {
-      trailer = trailer.replace("watch?v=","embed/").replace("youtu.be/","youtube.com/embed/");
-    }
+    let trailer = convertYouTubeLink(movieTrailer.value.trim());
 
     let episodeIds = [];
-    const epFiles = document.getElementById("seriesEpisodes").files;
-    for (let f of epFiles) {
-      const url = await uploadFileWithProgress(f,"episode");
-      episodeIds.push(url);
-    }
+    for (let f of seriesEpisodes.files)
+      episodeIds.push(await uploadFileWithProgress(f,"episode"));
 
-    const newMovie = {title, year, genres, description:desc, poster, fileId, trailer, episodeIds};
-    movies.push(newMovie);
+    movies.push({title,year,genres,description:desc,poster,fileId,trailer,episodeIds});
     await saveMovies();
-    renderMovies();
-    renderAdminMovies();
+    renderMovies(); renderAdminMovies();
     alert("✅ Movie added!");
-  } catch (e) {
-    alert("Error: "+e.message);
-  }
+  } catch (e) { alert("Error: "+e); }
 });
 
-// Convert YouTube links
 function convertYouTubeLink(url) {
-  if(url.includes("youtube.com/watch?v=")) return "https://www.youtube.com/embed/" + url.split("v=")[1].split("&")[0];
+  if(url.includes("watch?v=")) return "https://www.youtube.com/embed/" + url.split("v=")[1].split("&")[0];
   if(url.includes("youtu.be/")) return "https://www.youtube.com/embed/" + url.split("youtu.be/")[1].split("?")[0];
   return url;
 }
 
-// View movie details
 function viewDetails(i) {
   const m = movies[i];
-  document.getElementById("modalTitle").innerText = m.title;
-  document.getElementById("modalYear").innerText = "Year: " + m.year;
-  document.getElementById("modalGenres").innerText = "Genres: " + m.genres.join(", ");
-  const player = document.getElementById("modalPlayer");
-  const episodeList = document.getElementById("episodeList");
-  player.innerHTML = ""; episodeList.innerHTML = "";
+  modalTitle.textContent = m.title;
+  modalYear.textContent = "Year: "+m.year;
+  modalGenres.textContent = "Genres: "+m.genres.join(", ");
+  modalDesc.textContent = m.description || "";
+  const player = modalPlayer, epList = episodeList;
+  player.innerHTML = ""; epList.innerHTML = "";
 
-  if (m.fileId) {
-    player.innerHTML = `<video controls src="${m.fileId}" autoplay></video>`;
-  } else if (m.trailer) {
-    player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
-  } else {
-    player.innerHTML = "<p>No video available</p>";
-  }
+  if (m.fileId) player.innerHTML = `<video controls src="${m.fileId}" autoplay></video>`;
+  else if (m.trailer) player.innerHTML = `<iframe src="${m.trailer}" frameborder="0" allowfullscreen></iframe>`;
+  else player.innerHTML = "<p>No video available</p>";
 
-  if (m.episodeIds && m.episodeIds.length>0) {
-    m.episodeIds.forEach((ep, idx) => {
-      const btn = document.createElement("button");
-      btn.textContent = "Episode " + (idx+1);
-      btn.onclick = () => { player.innerHTML = `<video controls src="${ep}" autoplay></video>`; };
-      episodeList.appendChild(btn);
+  if (m.episodeIds?.length) {
+    m.episodeIds.forEach((ep,idx) => {
+      const b=document.createElement("button");
+      b.textContent="Episode "+(idx+1);
+      b.onclick=()=>{player.innerHTML=`<video controls src="${ep}" autoplay></video>`};
+      epList.appendChild(b);
     });
   }
-
-  document.getElementById("modalDesc").innerText = m.description || "";
-  document.getElementById("movieModal").style.display="flex";
-  document.getElementById("modalAddToList").onclick = () => addToWatchlist(i);
+  movieModal.style.display="flex";
+  modalAddToList.onclick=()=>addToWatchlist(i);
 }
 
-// Watchlist
 function addToWatchlist(i) {
-  if (!watchlist.find(m => m.title === movies[i].title)) {
-    watchlist.push(movies[i]);
-    saveWatchlist();
+  if (!watchlist.find(m=>m.title===movies[i].title)) {
+    watchlist.push(movies[i]); saveWatchlist();
     alert("✅ Added to Watchlist");
-  } else {
-    alert("⚠️ Already in Watchlist");
-  }
+  } else alert("⚠️ Already in Watchlist");
   updateWatchlistButton();
 }
 
 function showWatchlist() {
-  const container = document.getElementById("watchlistContainer");
-  container.innerHTML = "";
-  if (watchlist.length === 0) {
-    container.innerHTML = "<p>No movies yet.</p>";
-  } else {
-    watchlist.forEach((m, index) => {
-      const div = document.createElement("div");
-      div.className = "watchlist-card";
-      div.innerHTML = `<img src="${m.poster}" alt="${m.title}">
-        <h4>${m.title}</h4><p>${m.year}</p>
-        <button class="remove-btn" onclick="removeFromWatchlist(${index})">Remove</button>`;
-      container.appendChild(div);
-    });
-  }
-  document.getElementById("watchlistModal").style.display="flex";
+  const c=watchlistContainer; c.innerHTML="";
+  if (!watchlist.length) c.innerHTML="<p>No movies yet.</p>";
+  else watchlist.forEach((m,i)=>{
+    const d=document.createElement("div"); d.className="watchlist-card";
+    d.innerHTML=`<img src="${m.poster}" alt="${m.title}">
+    <h4>${m.title}</h4><p>${m.year}</p>
+    <button class="remove-btn" onclick="removeFromWatchlist(${i})">Remove</button>`;
+    c.appendChild(d);
+  });
+  watchlistModal.style.display="flex";
 }
 
-function removeFromWatchlist(index) {
-  watchlist.splice(index, 1);
-  saveWatchlist();
-  showWatchlist();
-  updateWatchlistButton();
+function removeFromWatchlist(i) {
+  watchlist.splice(i,1); saveWatchlist();
+  showWatchlist(); updateWatchlistButton();
 }
 
-function saveWatchlist() {
-  localStorage.setItem("watchlist", JSON.stringify(watchlist));
-}
-
-function updateWatchlistButton() {
-  document.getElementById("watchlistToggle").textContent = `Watchlist (${watchlist.length})`;
-}
+function saveWatchlist(){ localStorage.setItem("watchlist",JSON.stringify(watchlist)); }
+function updateWatchlistButton(){ watchlistToggle.textContent=`Watchlist (${watchlist.length})`; }
 updateWatchlistButton();
 
-function closeModal(id) {
-  document.getElementById(id).style.display="none";
-}
+function closeModal(id){ document.getElementById(id).style.display="none"; }
 </script>
 </body>
 </html>
