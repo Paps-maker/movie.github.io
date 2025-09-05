@@ -110,7 +110,7 @@ function renderMovies() {
         <div class="card-actions">
           <button class="btn" onclick="viewDetails(${i})">Details</button>
           <button class="btn" onclick="addToWatchlist(${i})">Add to List</button>
-          ${m.watchLink ? `<button class="btn" onclick="window.open('${m.watchLink}','_blank')">Watch</button>` : ''}
+          ${m.trailer ? `<button class="btn" onclick="watchTrailer(${i})">Watch</button>` : ''}
         </div>
       </div>`;
     grid.appendChild(card);
@@ -135,10 +135,6 @@ function convertYouTubeLink(url) {
 
 function viewDetails(i) {
   const m = movies[i];
-  document.getElementById("modalTitle").innerText = m.title;
-  document.getElementById("modalYear").innerText = "Year: " + m.year;
-  document.getElementById("modalGenres").innerText = "Genres: " + m.genres.join(", ");
-
   const player = document.getElementById("modalPlayer");
   const episodeList = document.getElementById("episodeList");
   player.innerHTML = "";
@@ -167,6 +163,38 @@ function viewDetails(i) {
     });
   }
 
+  document.getElementById("modalTitle").innerText = m.title;
+  document.getElementById("modalYear").innerText = "Year: " + m.year;
+  document.getElementById("modalGenres").innerText = "Genres: " + m.genres.join(", ");
+  document.getElementById("modalDesc").innerText = m.description || "";
+  document.getElementById("movieModal").style.display = "flex";
+  document.getElementById("modalAddToList").onclick = () => addToWatchlist(i);
+}
+
+function watchTrailer(i) {
+  const m = movies[i];
+  const player = document.getElementById("modalPlayer");
+  const episodeList = document.getElementById("episodeList");
+  player.innerHTML = "";
+  episodeList.innerHTML = "";
+
+  if (m.trailer && m.trailer.trim() !== "") {
+    const ytURL = convertYouTubeLink(m.trailer);
+    player.innerHTML = `<iframe 
+                          src="${ytURL}" 
+                          frameborder="0" 
+                          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowfullscreen>
+                        </iframe>`;
+  } else if (m.fileUrl && m.fileUrl.trim() !== "") {
+    player.innerHTML = `<video controls src="${m.fileUrl}"></video>`;
+  } else {
+    player.innerHTML = "<p>No video available</p>";
+  }
+
+  document.getElementById("modalTitle").innerText = m.title;
+  document.getElementById("modalYear").innerText = "Year: " + m.year;
+  document.getElementById("modalGenres").innerText = "Genres: " + m.genres.join(", ");
   document.getElementById("modalDesc").innerText = m.description || "";
   document.getElementById("movieModal").style.display = "flex";
   document.getElementById("modalAddToList").onclick = () => addToWatchlist(i);
