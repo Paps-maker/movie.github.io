@@ -6,9 +6,7 @@
 <link rel="icon" href="img/logo.png" type="image/png">
 <title>MovieDrift</title>
 <style>
-:root {
-  --bg: #000; --card-bg: #0a0a0a; --accent: #00ff66; --text: #ddd; --muted: #888;
-}
+:root { --bg: #000; --card-bg: #0a0a0a; --accent: #00ff66; --text: #ddd; --muted: #888; }
 body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
 header { display:flex; justify-content:space-between; align-items:center; background:#111; padding:10px 20px; flex-wrap:wrap; }
 .logo { font-size:24px; font-weight:bold; color: var(--accent); }
@@ -62,16 +60,14 @@ textarea { resize:vertical; min-height:80px; }
 <main><div id="grid" class="grid"></div></main>
 
 <section id="adminPanel">
-  <h3>➕ Add a Movie/Series</h3>
+  <h3>➕ Add/Edit Movie/Series</h3>
   <div class="form-grid">
     <div class="form-control"><label>Title</label><input id="movieTitle" type="text"></div>
     <div class="form-control"><label>Year</label><input id="movieYear" type="number"></div>
     <div class="form-control"><label>Genres (comma separated)</label><input id="movieGenres" type="text"></div>
-    <div class="form-control"><label>Poster Image</label><input id="moviePosterFile" type="file" accept="image/*"></div>
-    <div class="form-control"><label>Poster URL (optional)</label><input id="moviePosterURL" type="url"></div>
-    <div class="form-control"><label>Movie File (MP4)</label><input id="movieFile" type="file" accept="video/mp4"></div>
+    <div class="form-control"><label>Poster URL</label><input id="moviePosterURL" type="url"></div>
+    <div class="form-control"><label>Movie File URL (MP4)</label><input id="movieFileURL" type="url"></div>
     <div class="form-control"><label>Trailer/Embed Link (YouTube)</label><input id="movieTrailer" type="url"></div>
-    <div class="form-control"><label>Episodes (MP4, select multiple)</label><input id="seriesEpisodes" type="file" accept="video/mp4" multiple></div>
     <div class="form-control" style="grid-column: span 2;">
       <label>Description</label><textarea id="movieDesc"></textarea>
     </div>
@@ -103,8 +99,8 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <script>
-// ----- Storage -----
-let movies = [];
+// --- Init ---
+let movies = JSON.parse(localStorage.getItem("movies")) || [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
 const grid = document.getElementById("grid");
 const searchInput = document.getElementById("search");
@@ -112,26 +108,27 @@ const genreFilter = document.getElementById("genreFilter");
 const yearFilter = document.getElementById("yearFilter");
 const watchlistBtn = document.getElementById("watchlistToggle");
 
-// ----- Load JSON -----
+// --- Load JSON ---
 async function loadMoviesJSON(){
   try{
     const res=await fetch("movies.json");
     if(!res.ok) throw new Error("Fetch failed");
-    movies=await res.json();
-    renderMovies();
-    populateFilters();
-  }catch(e){ console.warn("Failed to load movies.json",e); }
+    const data=await res.json();
+    if(data.length>0) movies=data;
+    saveMovies();
+  }catch(e){ console.warn("Loading from localStorage due to server error",e); }
+  renderMovies(); populateFilters(); updateWatchlistCount();
 }
 
-// ----- Save to JSON on server -----
-async function saveMovies(){
+// --- Save ---
+function saveMovies(){ 
   localStorage.setItem("movies",JSON.stringify(movies));
-  try{
-    await fetch("save_movies.php",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(movies)});
-  }catch(e){ console.warn("Server save failed",e); }
+  fetch("save_movies.php",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(movies)})
+  .then(res=>res.json()).then(res=>console.log(res)).catch(e=>console.warn("Save failed",e));
 }
+function saveWatchlist(){ localStorage.setItem("watchlist",JSON.stringify(watchlist)); }
 
-// ----- Render movies -----
+// --- Render ---
 function renderMovies(){
   grid.innerHTML="";
   const searchText=searchInput.value.toLowerCase();
@@ -152,130 +149,124 @@ function renderMovies(){
         <div class="meta">${m.year} · ${m.genres.join(", ")}</div>
         <div class="card-actions">
           <button class="btn" onclick="viewDetails(${i})">Details</button>
+          <button class="btn" onclick="addToWatchlist(${i})">Add to List</button>
         </div>
       </div>`;
     grid.appendChild(card);
   });
 }
 
-// ----- Filters -----
+// --- Filters ---
 function populateFilters(){
-  const genres=new Set(); const years=new Set();
-  movies.forEach(m=>{ m.genres.forEach(g=>genres.add(g)); years.add(m.year); });
-  genreFilter.innerHTML='<option value="">All genres</option>'+[...genres].sort().map(g=>`<option value="${g}">${g}</option>`).join("");
-  yearFilter.innerHTML='<option value="">All years</option>'+[...years].sort((a,b)=>b-a).map(y=>`<option value="${y}">${y}</option>`).join("");
+  let allGenres=new Set();
+  movies.forEach(m=>m.genres.forEach(g=>allGenres.add(g)));
+  genreFilter.innerHTML='<option value="">All genres</option>';
+  allGenres.forEach(g=>{ const opt=document.createElement("option"); opt.value=g; opt.innerText=g; genreFilter.appendChild(opt); });
+  let allYears=[...new Set(movies.map(m=>m.year))].sort((a,b)=>b-a);
+  yearFilter.innerHTML='<option value="">All years</option>';
+  allYears.forEach(y=>{ const opt=document.createElement("option"); opt.value=y; opt.innerText=y; yearFilter.appendChild(opt); });
 }
 
-// ----- Modal -----
-const modal = document.getElementById("movieModal");
+// --- Details Modal ---
 function viewDetails(i){
   const m=movies[i];
-  document.getElementById("modalTitle").textContent=m.title;
-  document.getElementById("modalYear").textContent=m.year;
-  document.getElementById("modalGenres").textContent=m.genres.join(", ");
-  document.getElementById("modalDesc").textContent=m.description;
-  const player=document.getElementById("modalPlayer");
-  player.innerHTML="";
+  document.getElementById("modalTitle").innerText=m.title;
+  document.getElementById("modalYear").innerText="Year: "+m.year;
+  document.getElementById("modalGenres").innerText="Genres: "+m.genres.join(", ");
+  const player=document.getElementById("modalPlayer"); player.innerHTML="";
   if(m.fileUrl) player.innerHTML=`<video controls src="${m.fileUrl}"></video>`;
-  else if(m.trailer) player.innerHTML=`<iframe src="${m.trailer.replace("watch?v=","embed/")}" frameborder="0" allowfullscreen></iframe>`;
-  const eps=document.getElementById("episodeList");
-  eps.innerHTML="";
-  if(m.episodeIds&&m.episodeIds.length) m.episodeIds.forEach((ep,j)=>{
-    const btn=document.createElement("button");
-    btn.textContent="Episode "+(j+1);
-    btn.onclick=()=>player.innerHTML=`<video controls src="${ep}"></video>`;
-    eps.appendChild(btn);
-  });
-  document.getElementById("modalAddToList").onclick=()=>{ addToWatchlist(i); closeModal('movieModal'); };
-  modal.style.display="flex";
+  else if(m.trailer) player.innerHTML=`<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
+  else player.innerHTML="<p>No video available</p>";
+  document.getElementById("modalDesc").innerText=m.description;
+  document.getElementById("modalAddToList").onclick=()=>addToWatchlist(i);
+  document.getElementById("movieModal").style.display="flex";
 }
-function closeModal(id){ document.getElementById(id).style.display="none"; }
+function convertYouTubeLink(url){
+  if(url.includes("youtube.com/watch?v=")){ const vid=url.split("v=")[1].split("&")[0]; return `https://www.youtube.com/embed/${vid}`; }
+  if(url.includes("youtu.be/")){ const vid=url.split("youtu.be/")[1].split("?")[0]; return `https://www.youtube.com/embed/${vid}`; }
+  return url;
+}
+function closeModal(id){ document.getElementById(id).style.display="none"; if(id==="movieModal") document.getElementById("modalPlayer").innerHTML=""; }
 
-// ----- Watchlist -----
-function addToWatchlist(i){
-  if(!watchlist.includes(i)){ watchlist.push(i); localStorage.setItem("watchlist",JSON.stringify(watchlist)); updateWatchlistBtn(); }
-}
-function removeFromWatchlist(i){ watchlist.splice(i,1); localStorage.setItem("watchlist",JSON.stringify(watchlist)); renderWatchlist(); updateWatchlistBtn(); }
-function renderWatchlist(){
+// --- Watchlist ---
+function addToWatchlist(i){ const m=movies[i]; if(watchlist.some(w=>w.title===m.title)){ alert("Already in list"); return; } watchlist.push(m); saveWatchlist(); updateWatchlistCount(); alert(`"${m.title}" added!`);}
+function updateWatchlistCount(){ watchlistBtn.textContent=`Watchlist (${watchlist.length})`; }
+watchlistBtn.addEventListener("click",()=>{
   const container=document.getElementById("watchlistContainer"); container.innerHTML="";
-  if(!watchlist.length){ container.innerHTML="<p>No movies in watchlist.</p>"; return; }
-  watchlist.forEach(i=>{
-    const m=movies[i];
-    const card=document.createElement("div"); card.className="watchlist-card";
-    card.innerHTML=`<img src="${m.poster}" alt="${m.title}"><div>${m.title}</div><button class="remove-btn" onclick="removeFromWatchlist(${i})">Remove</button>`;
-    container.appendChild(card);
+  if(watchlist.length===0) container.innerHTML="<p>No movies yet.</p>";
+  else watchlist.forEach((m,index)=>{
+    const div=document.createElement("div"); div.className="watchlist-card";
+    div.innerHTML=`<img src="${m.poster}" alt="${m.title}"><h4>${m.title}</h4><p>${m.year} · ${m.genres.join(", ")}</p>
+      <button class="remove-btn" onclick="removeFromWatchlist(${index})">Remove</button>`;
+    container.appendChild(div);
   });
-}
-function updateWatchlistBtn(){ watchlistBtn.textContent=`Watchlist (${watchlist.length})`; }
-watchlistBtn.onclick=()=>{ renderWatchlist(); document.getElementById("watchlistModal").style.display="flex"; };
+  document.getElementById("watchlistModal").style.display="flex";
+});
+function removeFromWatchlist(index){ watchlist.splice(index,1); saveWatchlist(); updateWatchlistCount(); document.getElementById("watchlistToggle").click(); }
 
-// ----- Filters & Search -----
-searchInput.addEventListener("input",renderMovies);
-genreFilter.addEventListener("change",renderMovies);
-yearFilter.addEventListener("change",renderMovies);
-
-// ----- Admin -----
+// --- Admin ---
+let editingIndex=null;
 document.getElementById("adminLogin").addEventListener("click",()=>{
   const pwd=prompt("Enter admin password:");
-  if(pwd==="@Stone001"){ document.getElementById("adminPanel").style.display="block"; renderAdminMovies(); alert("Admin mode activated!"); }
-  else alert("Wrong password!");
+  if(pwd==="@Stone001"){ document.getElementById("adminPanel").style.display="block"; renderAdminMovies(); alert("Admin mode activated"); }
+  else alert("Wrong password");
 });
 
-// ----- Upload Files -----
-async function uploadFile(file,type){
-  const form=new FormData(); form.append("file",file); form.append("type",type);
-  const res=await fetch("upload.php",{method:"POST",body:form});
-  const json=await res.json();
-  if(json.status==="success") return json.url; else { alert("Upload failed: "+json.message); return null; }
-}
-
-// ----- Admin Add Movie -----
-document.getElementById("addMovieBtn").addEventListener("click", async ()=>{
-  const title=document.getElementById("movieTitle").value.trim();
-  const year=document.getElementById("movieYear").value.trim();
-  const genres=document.getElementById("movieGenres").value.trim().split(",").map(g=>g.trim()).filter(Boolean);
-  const desc=document.getElementById("movieDesc").value.trim();
-  const posterFile=document.getElementById("moviePosterFile").files[0];
-  const posterURL=document.getElementById("moviePosterURL").value.trim();
-  const movieFile=document.getElementById("movieFile").files[0];
-  const trailer=document.getElementById("movieTrailer").value.trim();
-  const episodeFiles=document.getElementById("seriesEpisodes").files;
-  if(!title||!year||!genres.length||(!posterFile&&!posterURL)||(!movieFile&&!trailer&&!episodeFiles.length)||!desc){ alert("Fill all fields"); return; }
-  const posterSrc = posterFile ? await uploadFile(posterFile,"poster") : posterURL;
-  const movieId = movieFile ? await uploadFile(movieFile,"movie") : null;
-  const episodeIds=[]; for(let f of episodeFiles){ const ep=await uploadFile(f,"episode"); if(ep) episodeIds.push(ep); }
-  const movieData={ title, year, genres, poster:posterSrc, fileUrl:movieId, trailer:trailer||"", description:desc, episodeIds };
-  movies.push(movieData); saveMovies(); renderMovies(); populateFilters(); renderAdminMovies();
-  alert(`"${title}" added!`); document.querySelectorAll("#adminPanel input, #adminPanel textarea").forEach(el=>el.value="");
-});
-
-// ----- Admin Render -----
 function renderAdminMovies(){
   const container=document.getElementById("adminMovieList"); container.innerHTML="";
-  if(!movies.length){ container.innerHTML="<p>No movies yet.</p>"; return; }
+  if(movies.length===0){ container.innerHTML="<p>No movies yet.</p>"; return; }
   movies.forEach((m,i)=>{
     const div=document.createElement("div");
-    div.style.border="1px solid #333"; div.style.padding="8px"; div.style.margin="5px 0"; div.style.borderRadius="6px";
-    div.innerHTML=`<strong>${m.title}</strong> (${m.year}) <button onclick="editMovie(${i})">Edit</button> <button onclick="deleteMovie(${i})">Delete</button>`;
+    div.style.border="1px solid #333"; div.style.padding="10px"; div.style.margin="5px 0"; div.style.borderRadius="6px";
+    div.innerHTML=`<strong>${m.title}</strong> (${m.year}) <button onclick="editMovie(${i})" style="margin-left:5px;">Edit</button>
+    <button onclick="deleteMovie(${i})" style="margin-left:5px;">Delete</button>`;
     container.appendChild(div);
   });
 }
 
-// ----- Admin Delete/Edit -----
-function deleteMovie(i){ if(confirm("Delete this movie?")){ movies.splice(i,1); saveMovies(); renderMovies(); populateFilters(); renderAdminMovies(); } }
 function editMovie(i){
   const m=movies[i];
-  const title=prompt("Edit Title:",m.title); if(title)m.title=title;
-  const year=prompt("Edit Year:",m.year); if(year)m.year=year;
-  const genres=prompt("Edit Genres (comma separated):",m.genres.join(",")); if(genres)m.genres=genres.split(",").map(g=>g.trim()).filter(Boolean);
-  const desc=prompt("Edit Description:",m.description); if(desc)m.description=desc;
-  const trailer=prompt("Edit Trailer URL:",m.trailer); if(trailer)m.trailer=trailer;
-  saveMovies(); renderMovies(); populateFilters(); renderAdminMovies(); alert("Movie updated!");
+  document.getElementById("movieTitle").value = m.title;
+  document.getElementById("movieYear").value = m.year;
+  document.getElementById("movieGenres").value = m.genres.join(", ");
+  document.getElementById("moviePosterURL").value = m.poster;
+  document.getElementById("movieFileURL").value = m.fileUrl;
+  document.getElementById("movieTrailer").value = m.trailer;
+  document.getElementById("movieDesc").value = m.description;
+  editingIndex=i;
+  document.getElementById("addMovieBtn").textContent="Update Movie/Series";
 }
 
-// ----- Init -----
+function deleteMovie(i){ if(confirm("Delete this movie?")){ movies.splice(i,1); saveMovies(); renderMovies(); populateFilters(); renderAdminMovies(); } }
+
+document.getElementById("addMovieBtn").addEventListener("click",()=>{
+  const title=document.getElementById("movieTitle").value.trim();
+  const year=parseInt(document.getElementById("movieYear").value.trim());
+  const genres=document.getElementById("movieGenres").value.trim().split(",").map(g=>g.trim()).filter(Boolean);
+  const poster=document.getElementById("moviePosterURL").value.trim();
+  const fileUrl=document.getElementById("movieFileURL").value.trim();
+  const trailer=document.getElementById("movieTrailer").value.trim();
+  const desc=document.getElementById("movieDesc").value.trim();
+  if(!title||!year||!genres.length||!poster||(!fileUrl&&!trailer)||!desc){ alert("Fill all required fields"); return; }
+
+  const movie={title,year,genres,poster,fileUrl,trailer,description:desc,episodeIds:[]};
+
+  if(editingIndex!==null){ movies[editingIndex]=movie; editingIndex=null; document.getElementById("addMovieBtn").textContent="Add Movie/Series"; }
+  else movies.push(movie);
+
+  renderMovies(); populateFilters(); renderAdminMovies(); saveMovies();
+
+  alert(editingIndex===null?`${title} added!`:`${title} updated!`);
+  document.querySelectorAll("#adminPanel input, #adminPanel textarea").forEach(el=>el.value="");
+});
+
+// --- Events ---
+searchInput.addEventListener("input",renderMovies);
+genreFilter.addEventListener("change",renderMovies);
+yearFilter.addEventListener("change",renderMovies);
+
+// --- Load ---
 loadMoviesJSON();
-updateWatchlistBtn();
 </script>
 </body>
 </html>
