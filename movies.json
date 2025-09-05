@@ -2,211 +2,102 @@
   {
     "title": "Inception",
     "year": 2010,
-    "type": "movie",
     "genres": ["Action", "Sci-Fi", "Thriller"],
     "poster": "img/inception.jpg",
     "fileUrl": "movies/inception.mp4",
-    "trailer": {
-      "type": "youtube",
-      "url": "https://www.youtube.com/watch?v=YoHD9XEInc0"
-    },
-    "watchLinks": [
-      {"label": "Watch Trailer", "url": "https://www.youtube.com/watch?v=YoHD9XEInc0"},
-      {"label": "Watch Movie", "url": "movies/inception.mp4"}
-    ],
-    "rating": 8.8,
-    "duration": "2h 28m",
-    "language": "English",
+    "trailer": "https://www.youtube.com/watch?v=YoHD9XEInc0",
     "description": "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a CEO.",
-    "episodes": []
+    "episodeIds": []
   },
   {
     "title": "The Matrix",
     "year": 1999,
-    "type": "movie",
     "genres": ["Action", "Sci-Fi"],
     "poster": "img/matrix.jpg",
     "fileUrl": "movies/matrix.mp4",
-    "trailer": {
-      "type": "youtube",
-      "url": "https://www.youtube.com/watch?v=vKQi3bBA1y8"
-    },
-    "watchLinks": [
-      {"label": "Watch Trailer", "url": "https://www.youtube.com/watch?v=vKQi3bBA1y8"},
-      {"label": "Watch Movie", "url": "movies/matrix.mp4"}
-    ],
-    "rating": 8.7,
-    "duration": "2h 16m",
-    "language": "English",
+    "trailer": "https://www.youtube.com/watch?v=vKQi3bBA1y8",
     "description": "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
-    "episodes": []
+    "episodeIds": []
   },
   {
     "title": "Spider-Man: No Way Home",
     "year": 2021,
-    "type": "movie",
     "genres": ["Action", "Adventure", "Fantasy"],
     "poster": "img/spiderman.jpg",
     "fileUrl": "movies/spiderman.mp4",
-    "trailer": {
-      "type": "youtube",
-      "url": "https://www.youtube.com/watch?v=JfVOs4VSpmA"
-    },
-    "watchLinks": [
-      {"label": "Watch Trailer", "url": "https://www.youtube.com/watch?v=JfVOs4VSpmA"},
-      {"label": "Watch Movie", "url": "movies/spiderman.mp4"}
-    ],
-    "rating": 8.4,
-    "duration": "2h 28m",
-    "language": "English",
+    "trailer": "https://www.youtube.com/watch?v=JfVOs4VSpmA",
     "description": "Peter Parker seeks help from Doctor Strange to restore his secret identity, but when a spell goes wrong, dangerous foes from other universes start to appear.",
-    "episodes": []
+    "episodeIds": []
   },
   {
     "title": "Interstellar",
     "year": 2014,
-    "type": "movie",
     "genres": ["Adventure", "Drama", "Sci-Fi"],
     "poster": "img/interstellar.jpg",
     "fileUrl": "movies/interstellar.mp4",
-    "trailer": {
-      "type": "youtube",
-      "url": "https://www.youtube.com/watch?v=zSWdZVtXT7E"
-    },
-    "watchLinks": [
-      {"label": "Watch Trailer", "url": "https://www.youtube.com/watch?v=zSWdZVtXT7E"},
-      {"label": "Watch Movie", "url": "movies/interstellar.mp4"}
-    ],
-    "rating": 8.6,
-    "duration": "2h 49m",
-    "language": "English",
+    "trailer": "https://www.youtube.com/watch?v=zSWdZVtXT7E",
     "description": "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
-    "episodes": []
+    "episodeIds": []
   },
   {
     "title": "The Dark Knight",
     "year": 2008,
-    "type": "movie",
     "genres": ["Action", "Crime", "Drama"],
     "poster": "img/darkknight.jpg",
     "fileUrl": "movies/darkknight.mp4",
-    "trailer": {
-      "type": "youtube",
-      "url": "https://www.youtube.com/watch?v=EXeTwQWrcwY"
-    },
-    "watchLinks": [
-      {"label": "Watch Trailer", "url": "https://www.youtube.com/watch?v=EXeTwQWrcwY"},
-      {"label": "Watch Movie", "url": "movies/darkknight.mp4"}
-    ],
-    "rating": 9.0,
-    "duration": "2h 32m",
-    "language": "English",
+    "trailer": "https://www.youtube.com/watch?v=EXeTwQWrcwY",
     "description": "Batman faces the Joker, a criminal mastermind who seeks to plunge Gotham City into anarchy.",
-    "episodes": []
+    "episodeIds": []
   },
   {
     "title": "Avengers: Endgame",
     "year": 2019,
-    "type": "movie",
     "genres": ["Action", "Adventure", "Sci-Fi"],
     "poster": "img/endgame.jpg",
     "fileUrl": "movies/endgame.mp4",
-    "trailer": {
-      "type": "youtube",
-      "url": "https://www.youtube.com/watch?v=TcMBFSGVi1c"
-    },
-    "watchLinks": [
-      {"label": "Watch Trailer", "url": "https://www.youtube.com/watch?v=TcMBFSGVi1c"},
-      {"label": "Watch Movie", "url": "movies/endgame.mp4"}
-    ],
-    "rating": 8.4,
-    "duration": "3h 2m",
-    "language": "English",
+    "trailer": "https://www.youtube.com/watch?v=TcMBFSGVi1c",
     "description": "The Avengers assemble once more to undo the damage caused by Thanos and restore balance to the universe.",
-    "episodes": []
+    "episodeIds": []
   },
   {
     "title": "The Lord of the Rings: The Fellowship of the Ring",
     "year": 2001,
-    "type": "movie",
     "genres": ["Adventure", "Drama", "Fantasy"],
     "poster": "img/lotr1.jpg",
     "fileUrl": "movies/lotr1.mp4",
-    "trailer": {
-      "type": "youtube",
-      "url": "https://www.youtube.com/watch?v=V75dMMIW2B4"
-    },
-    "watchLinks": [
-      {"label": "Watch Trailer", "url": "https://www.youtube.com/watch?v=V75dMMIW2B4"},
-      {"label": "Watch Movie", "url": "movies/lotr1.mp4"}
-    ],
-    "rating": 8.8,
-    "duration": "2h 58m",
-    "language": "English",
+    "trailer": "https://www.youtube.com/watch?v=V75dMMIW2B4",
     "description": "A hobbit named Frodo begins a journey to destroy the One Ring and save Middle-earth from the Dark Lord Sauron.",
-    "episodes": []
+    "episodeIds": []
   },
   {
     "title": "Joker",
     "year": 2019,
-    "type": "movie",
     "genres": ["Crime", "Drama", "Thriller"],
     "poster": "img/joker.jpg",
     "fileUrl": "movies/joker.mp4",
-    "trailer": {
-      "type": "youtube",
-      "url": "https://www.youtube.com/watch?v=zAGVQLHvwOY"
-    },
-    "watchLinks": [
-      {"label": "Watch Trailer", "url": "https://www.youtube.com/watch?v=zAGVQLHvwOY"},
-      {"label": "Watch Movie", "url": "movies/joker.mp4"}
-    ],
-    "rating": 8.5,
-    "duration": "2h 2m",
-    "language": "English",
+    "trailer": "https://www.youtube.com/watch?v=zAGVQLHvwOY",
     "description": "In Gotham City, a mentally troubled comedian embarks on a downward spiral that leads to violent chaos.",
-    "episodes": []
+    "episodeIds": []
   },
   {
     "title": "Frozen II",
     "year": 2019,
-    "type": "movie",
     "genres": ["Animation", "Adventure", "Comedy"],
     "poster": "img/frozen2.jpg",
     "fileUrl": "movies/frozen2.mp4",
-    "trailer": {
-      "type": "youtube",
-      "url": "https://www.youtube.com/watch?v=Zi4LMpSDccc"
-    },
-    "watchLinks": [
-      {"label": "Watch Trailer", "url": "https://www.youtube.com/watch?v=Zi4LMpSDccc"},
-      {"label": "Watch Movie", "url": "movies/frozen2.mp4"}
-    ],
-    "rating": 7.8,
-    "duration": "1h 43m",
-    "language": "English",
+    "trailer": "https://www.youtube.com/watch?v=Zi4LMpSDccc",
     "description": "Elsa, Anna, Kristoff, and Olaf set out on a dangerous but remarkable journey to save their kingdom.",
-    "episodes": []
+    "episodeIds": []
   },
   {
     "title": "The Lion King",
     "year": 1994,
-    "type": "movie",
     "genres": ["Animation", "Adventure", "Drama"],
     "poster": "img/lionking.jpg",
     "fileUrl": "movies/lionking.mp4",
-    "trailer": {
-      "type": "youtube",
-      "url": "https://www.youtube.com/watch?v=4sj1MT05lAA"
-    },
-    "watchLinks": [
-      {"label": "Watch Trailer", "url": "https://www.youtube.com/watch?v=4sj1MT05lAA"},
-      {"label": "Watch Movie", "url": "movies/lionking.mp4"}
-    ],
-    "rating": 8.5,
-    "duration": "1h 28m",
-    "language": "English",
+    "trailer": "https://www.youtube.com/watch?v=4sj1MT05lAA",
     "description": "Lion prince Simba flees his kingdom after the murder of his father, only to learn the true meaning of responsibility and bravery.",
-    "episodes": []
+    "episodeIds": []
   }
 ]
+
