@@ -1,72 +1,50 @@
 <?php
+// upload.php
+
 header('Content-Type: application/json');
 
-$adminPassword = '@Stone001';
+$uploadDir = "uploads/";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $pwd = $_POST['password'] ?? '';
-    if ($pwd !== $adminPassword) {
-        echo json_encode(['status'=>'error','message'=>'Wrong password']);
+// Create folders if they don't exist
+if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
+if (!file_exists($uploadDir."posters")) mkdir($uploadDir."posters", 0777, true);
+if (!file_exists($uploadDir."movies")) mkdir($uploadDir."movies", 0777, true);
+if (!file_exists($uploadDir."episodes")) mkdir($uploadDir."episodes", 0777, true);
+
+if (!isset($_FILES['file']) || !isset($_POST['type'])) {
+    echo json_encode(["status"=>"error","message"=>"No file or type provided"]);
+    exit;
+}
+
+$file = $_FILES['file'];
+$type = $_POST['type'];
+$targetDir = $uploadDir;
+
+switch($type){
+    case "poster":
+        $targetDir .= "posters/";
+        break;
+    case "movie":
+        $targetDir .= "movies/";
+        break;
+    case "episode":
+        $targetDir .= "episodes/";
+        break;
+    default:
+        echo json_encode(["status"=>"error","message"=>"Invalid type"]);
         exit;
-    }
+}
 
-    $moviesData = $_POST['movies'] ?? '';
-    if (!$moviesData) {
-        echo json_encode(['status'=>'error','message'=>'No movie data']);
-        exit;
-    }
+// Generate unique filename
+$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+$filename = time() . "_" . uniqid() . "." . $ext;
+$targetFile = $targetDir . $filename;
 
-    $movies = json_decode($moviesData, true);
-    if ($movies === null) {
-        echo json_encode(['status'=>'error','message'=>'Invalid JSON']);
-        exit;
-    }
-
-    // Create folders if they don't exist
-    if (!is_dir('uploads/posters')) mkdir('uploads/posters', 0777, true);
-    if (!is_dir('uploads/movies')) mkdir('uploads/movies', 0777, true);
-    if (!is_dir('uploads/episodes')) mkdir('uploads/episodes', 0777, true);
-
-    // Handle poster upload
-    foreach ($movies as $i => $m) {
-        // Poster
-        if (isset($_FILES['poster'.$i]) && $_FILES['poster'.$i]['error'] === 0) {
-            $ext = pathinfo($_FILES['poster'.$i]['name'], PATHINFO_EXTENSION);
-            $fileName = 'uploads/posters/'.time().'_'.$i.'.'.$ext;
-            move_uploaded_file($_FILES['poster'.$i]['tmp_name'], $fileName);
-            $movies[$i]['poster'] = $fileName;
-        }
-
-        // Movie file
-        if (isset($_FILES['file'.$i]) && $_FILES['file'.$i]['error'] === 0) {
-            $ext = pathinfo($_FILES['file'.$i]['name'], PATHINFO_EXTENSION);
-            $fileName = 'uploads/movies/'.time().'_'.$i.'.'.$ext;
-            move_uploaded_file($_FILES['file'.$i]['tmp_name'], $fileName);
-            $movies[$i]['fileUrl'] = $fileName;
-        }
-
-        // Episodes
-        if (isset($_FILES['episodes'.$i])) {
-            $episodes = $_FILES['episodes'.$i];
-            $movies[$i]['episodeIds'] = [];
-            for ($j=0;$j<count($episodes['name']);$j++) {
-                if ($episodes['error'][$j] === 0) {
-                    $ext = pathinfo($episodes['name'][$j], PATHINFO_EXTENSION);
-                    $fileName = 'uploads/episodes/'.time().'_'.$i.'_'.$j.'.'.$ext;
-                    move_uploaded_file($episodes['tmp_name'][$j], $fileName);
-                    $movies[$i]['episodeIds'][] = $fileName;
-                }
-            }
-        }
-    }
-
-    if(file_put_contents('movies.json', json_encode($movies, JSON_PRETTY_PRINT))) {
-        echo json_encode(['status'=>'success','message'=>'Movies uploaded and saved']);
-    } else {
-        echo json_encode(['status'=>'error','message'=>'Failed to save JSON']);
-    }
-
-} else {
-    echo json_encode(['status'=>'error','message'=>'Invalid request method']);
+// Move uploaded file
+if(move_uploaded_file($file['tmp_name'], $targetFile)){
+    $url = $targetFile; // Relative URL to store in movies.json
+    echo json_encode(["status"=>"success", "url"=>$url]);
+}else{
+    echo json_encode(["status"=>"error","message"=>"Upload failed"]);
 }
 ?>
