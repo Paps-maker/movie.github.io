@@ -45,10 +45,6 @@ textarea { resize:vertical; min-height:80px; }
 .remove-btn:hover { background:#c82333; }
 .episode-list { margin-top:10px; }
 .episode-list button { margin:2px; font-size:0.8rem; }
-
-/* Upload progress bar */
-#uploadProgress { width:100%; background:#222; border-radius:6px; margin-top:10px; display:none; }
-#uploadProgressBar { width:0%; height:20px; background:var(--accent); border-radius:6px; text-align:center; font-size:12px; color:#000; }
 </style>
 </head>
 <body>
@@ -75,13 +71,12 @@ textarea { resize:vertical; min-height:80px; }
     <div class="form-control"><label>Poster URL (optional)</label><input id="moviePosterURL" type="url"></div>
     <div class="form-control"><label>Movie File (MP4)</label><input id="movieFile" type="file" accept="video/mp4"></div>
     <div class="form-control"><label>Trailer/Embed Link (YouTube)</label><input id="movieTrailer" type="url"></div>
+    <div class="form-control"><label>External Watch Link</label><input id="movieWatchLink" type="url"></div>
     <div class="form-control"><label>Episodes (MP4, select multiple)</label><input id="seriesEpisodes" type="file" accept="video/mp4" multiple></div>
-    <div class="form-control"><label>External Watch Link</label><input id="movieWatchLink" type="url" placeholder="https://example.com"></div>
     <div class="form-control" style="grid-column: span 2;">
       <label>Description</label><textarea id="movieDesc"></textarea>
     </div>
   </div>
-  <div id="uploadProgress"><div id="uploadProgressBar">0%</div></div>
   <div class="submit-row">
     <button id="addMovieBtn">Add Movie/Series</button>
     <button id="editMovieBtn" style="display:none;">Save Changes</button>
@@ -90,6 +85,7 @@ textarea { resize:vertical; min-height:80px; }
   <div id="adminMovieList"></div>
 </section>
 
+<!-- Movie Details Modal -->
 <div class="modal" id="movieModal">
   <div class="modal-content">
     <span class="close" onclick="closeModal('movieModal')">&times;</span>
@@ -99,11 +95,14 @@ textarea { resize:vertical; min-height:80px; }
     <div id="modalPlayer"></div>
     <div class="episode-list" id="episodeList"></div>
     <p id="modalDesc"></p>
-    <button id="modalAddToList" class="btn">➕ Add to Watchlist</button>
-    <button id="modalWatchLink" class="btn" style="display:none;">▶ Watch Online</button>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+      <button id="modalAddToList" class="btn">➕ Add to Watchlist</button>
+      <a id="modalWatchLink" class="btn" target="_blank" style="display:none;">▶ Watch Online</a>
+    </div>
   </div>
 </div>
 
+<!-- Watchlist Modal -->
 <div class="modal" id="watchlistModal">
   <div class="modal-content">
     <span class="close" onclick="closeModal('watchlistModal')">&times;</span>
@@ -115,16 +114,7 @@ textarea { resize:vertical; min-height:80px; }
 <script>
 let movies = [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
-const ADMIN_PASSWORD = "@Stone001"; 
-
-document.getElementById("watchlistToggle").addEventListener("click", showWatchlist);
-document.getElementById("adminLogin").addEventListener("click", () => {
-  const pwd = prompt("Enter admin password:");
-  if (pwd === ADMIN_PASSWORD) {
-    document.getElementById("adminPanel").style.display = "block";
-    alert("✅ Admin mode activated");
-  } else alert("❌ Wrong password");
-});
+const ADMIN_PASSWORD = "@Stone001"; // 🔑 admin password
 
 // Load movies
 async function loadMovies() {
@@ -155,51 +145,66 @@ function renderMovies() {
   });
 }
 
+// Convert YouTube link
 function convertYouTubeLink(url) {
   if(url.includes("youtube.com/watch?v=")) return "https://www.youtube.com/embed/" + url.split("v=")[1].split("&")[0];
   if(url.includes("youtu.be/")) return "https://www.youtube.com/embed/" + url.split("youtu.be/")[1].split("?")[0];
   return url;
 }
 
+// View details
 function viewDetails(i) {
   const m = movies[i];
+  const player = document.getElementById("modalPlayer");
+  const episodeList = document.getElementById("episodeList");
+  const watchLinkBtn = document.getElementById("modalWatchLink");
+
   document.getElementById("modalTitle").innerText = m.title;
   document.getElementById("modalYear").innerText = "Year: " + m.year;
   document.getElementById("modalGenres").innerText = "Genres: " + m.genres.join(", ");
-  const player = document.getElementById("modalPlayer");
-  const episodeList = document.getElementById("episodeList");
+  document.getElementById("modalDesc").innerText = m.description || "";
+
   player.innerHTML = "";
   episodeList.innerHTML = "";
 
-  if (m.fileUrl && m.fileUrl.trim() !== "") {
-    player.innerHTML = `<video controls src="${m.fileUrl}" autoplay></video>`;
-  } else if (m.trailer && m.trailer.trim() !== "") {
-    player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
-  } else player.innerHTML = "<p>No video available</p>";
+  // Reset watch link
+  watchLinkBtn.style.display = "none";
+  watchLinkBtn.href = "#";
 
+  // Local video
+  if (m.fileUrl && m.fileUrl.trim() !== "") {
+    player.innerHTML = `<video controls src="${m.fileUrl}" autoplay style="width:100%; height:auto;"></video>`;
+  } 
+  // YouTube trailer
+  else if (m.trailer && m.trailer.trim() !== "") {
+    player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}?autoplay=1&mute=1" frameborder="0" allowfullscreen style="width:100%; height:400px;"></iframe>`;
+  }
+
+  // External watch link
+  if (m.watchLink && m.watchLink.trim() !== "") {
+    watchLinkBtn.style.display = "inline-block";
+    watchLinkBtn.href = m.watchLink;
+  }
+
+  // Episodes
   if (m.episodeIds && m.episodeIds.length > 0) {
     m.episodeIds.forEach((ep, idx) => {
       const btn = document.createElement("button");
       btn.textContent = "Episode " + (idx + 1);
-      btn.onclick = () => { player.innerHTML = `<video controls src="${ep}" autoplay></video>`; };
+      btn.onclick = () => {
+        player.innerHTML = `<video controls src="${ep}" autoplay style="width:100%; height:auto;"></video>`;
+      };
       episodeList.appendChild(btn);
     });
   }
 
-  document.getElementById("modalDesc").innerText = m.description || "";
-  document.getElementById("movieModal").style.display="flex";
+  document.getElementById("movieModal").style.display = "flex";
 
   // Add to watchlist
   document.getElementById("modalAddToList").onclick = () => addToWatchlist(i);
-
-  // Watch Online button
-  const watchBtn = document.getElementById("modalWatchLink");
-  if (m.watchLink && m.watchLink.trim() !== "") {
-    watchBtn.style.display = "inline-block";
-    watchBtn.onclick = () => window.open(m.watchLink, "_blank");
-  } else watchBtn.style.display = "none";
 }
 
+// Watchlist functions
 function addToWatchlist(i) {
   if (!watchlist.find(m => m.title === movies[i].title)) {
     watchlist.push(movies[i]);
@@ -212,16 +217,13 @@ function addToWatchlist(i) {
 function showWatchlist() {
   const container = document.getElementById("watchlistContainer");
   container.innerHTML = "";
-  if (watchlist.length === 0) {
-    container.innerHTML = "<p>No movies yet.</p>";
-  } else {
+  if (watchlist.length === 0) container.innerHTML = "<p>No movies yet.</p>";
+  else {
     watchlist.forEach((m, index) => {
       const div = document.createElement("div");
       div.className = "watchlist-card";
-      div.innerHTML = `
-        <img src="${m.poster}" alt="${m.title}">
-        <h4>${m.title}</h4>
-        <p>${m.year}</p>
+      div.innerHTML = `<img src="${m.poster}" alt="${m.title}">
+        <h4>${m.title}</h4><p>${m.year}</p>
         <button class="remove-btn" onclick="removeFromWatchlist(${index})">Remove</button>`;
       container.appendChild(div);
     });
@@ -244,11 +246,20 @@ function updateWatchlistButton() {
   document.getElementById("watchlistToggle").textContent = `Watchlist (${watchlist.length})`;
 }
 
-updateWatchlistButton();
+// Admin login
+document.getElementById("adminLogin").addEventListener("click", () => {
+  const pwd = prompt("Enter admin password:");
+  if (pwd === ADMIN_PASSWORD) document.getElementById("adminPanel").style.display = "block";
+  else alert("❌ Wrong password");
+});
 
-function closeModal(id) {
-  document.getElementById(id).style.display="none";
-}
+// Watchlist toggle
+document.getElementById("watchlistToggle").addEventListener("click", showWatchlist);
+
+// Close modal
+function closeModal(id) { document.getElementById(id).style.display="none"; }
+
+updateWatchlistButton();
 </script>
 </body>
 </html>
