@@ -77,6 +77,8 @@ textarea { resize:vertical; min-height:80px; }
     <div class="form-control" style="grid-column: span 2;">
       <label>Description</label><textarea id="movieDesc"></textarea>
     </div>
+    <div class="form-control" style="grid-column: span 2;">
+      <label>External Watch Link</label><input id="movieWatchLink" type="url"></div>
   </div>
   <div id="uploadProgress"><div id="uploadProgressBar">0%</div></div>
   <div class="submit-row">
@@ -97,7 +99,7 @@ textarea { resize:vertical; min-height:80px; }
     <div class="episode-list" id="episodeList"></div>
     <p id="modalDesc"></p>
     <button id="modalAddToList" class="btn">➕ Add to Watchlist</button>
-  </div>
+</div>
 </div>
 
 <div class="modal" id="watchlistModal">
@@ -113,10 +115,7 @@ let movies = [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
 const ADMIN_PASSWORD = "@Stone001";
 
-// Watchlist toggle
 document.getElementById("watchlistToggle").addEventListener("click", showWatchlist);
-
-// Admin login
 document.getElementById("adminLogin").addEventListener("click", () => {
   const pwd = prompt("Enter admin password:");
   if (pwd === ADMIN_PASSWORD) {
@@ -127,7 +126,6 @@ document.getElementById("adminLogin").addEventListener("click", () => {
   }
 });
 
-// Load movies
 async function loadMovies() {
   try {
     const res = await fetch("movies.json");
@@ -150,6 +148,7 @@ function renderMovies() {
         <div class="card-actions">
           <button class="btn" onclick="viewDetails(${i})">Details</button>
           <button class="btn" onclick="addToWatchlist(${i})">Add to List</button>
+          ${m.watchLink ? `<button class="btn" onclick="window.open('${m.watchLink}','_blank')">Watch</button>` : ''}
         </div>
       </div>`;
     grid.appendChild(card);
@@ -157,8 +156,8 @@ function renderMovies() {
 }
 
 function convertYouTubeLink(url) {
-  if(url.includes("youtube.com/watch?v=")) return "https://www.youtube.com/embed/" + url.split("v=")[1].split("&")[0] + "?autoplay=1&rel=0";
-  if(url.includes("youtu.be/")) return "https://www.youtube.com/embed/" + url.split("youtu.be/")[1].split("?")[0] + "?autoplay=1&rel=0";
+  if(url.includes("youtube.com/watch?v=")) return "https://www.youtube.com/embed/" + url.split("v=")[1].split("&")[0];
+  if(url.includes("youtu.be/")) return "https://www.youtube.com/embed/" + url.split("youtu.be/")[1].split("?")[0];
   return url;
 }
 
@@ -173,30 +172,38 @@ function viewDetails(i) {
   episodeList.innerHTML = "";
 
   if (m.fileUrl && m.fileUrl.trim() !== "") {
-    player.innerHTML = `<video controls autoplay src="${m.fileUrl}"></video>`;
+    player.innerHTML = `<video controls src="${m.fileUrl}" autoplay></video>`;
   } else if (m.trailer && m.trailer.trim() !== "") {
-    const embedURL = convertYouTubeLink(m.trailer);
-    player.innerHTML = `<iframe src="${embedURL}" frameborder="0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+    player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
   } else {
     player.innerHTML = "<p>No video available</p>";
+  }
+
+  if(m.watchLink) {
+    const watchBtn = document.createElement("button");
+    watchBtn.textContent = "Watch Externally";
+    watchBtn.className = "btn";
+    watchBtn.style.marginTop = "10px";
+    watchBtn.onclick = () => window.open(m.watchLink, "_blank");
+    player.appendChild(watchBtn);
   }
 
   if (m.episodeIds && m.episodeIds.length > 0) {
     m.episodeIds.forEach((ep, idx) => {
       const btn = document.createElement("button");
       btn.textContent = "Episode " + (idx + 1);
-      btn.onclick = () => { player.innerHTML = `<video controls autoplay src="${ep}"></video>`; };
+      btn.onclick = () => {
+        player.innerHTML = `<video controls src="${ep}" autoplay></video>`;
+      };
       episodeList.appendChild(btn);
     });
   }
 
   document.getElementById("modalDesc").innerText = m.description || "";
   document.getElementById("movieModal").style.display="flex";
-
   document.getElementById("modalAddToList").onclick = () => addToWatchlist(i);
 }
 
-// Watchlist
 function addToWatchlist(i) {
   if (!watchlist.find(m => m.title === movies[i].title)) {
     watchlist.push(movies[i]);
@@ -244,7 +251,6 @@ function updateWatchlistButton() {
 }
 
 updateWatchlistButton();
-
 function closeModal(id) {
   document.getElementById(id).style.display="none";
 }
