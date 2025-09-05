@@ -15,18 +15,18 @@
     "genres": ["Action", "Sci-Fi"],
     "poster": "img/02.jpg",
     "fileUrl": "",
-    "trailer": "",
+    "trailer": "https://youtu.be/fsQgc9pCyDU",
     "description": "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
     "episodeIds": []
   },
   {
     "title": "Thunderbolts*",
-    "year": 2021,
+    "year": 2025,
     "genres": ["Action", "Adventure", "Fantasy"],
-    "poster": "img/spiderman.jpg",
-    "fileUrl": "movies/spiderman.mp4",
-    "trailer": "https://www.youtube.com/watch?v=JfVOs4VSpmA",
-    "description": "Peter Parker seeks help from Doctor Strange to restore his secret identity, but when a spell goes wrong, dangerous foes from other universes start to appear.",
+    "poster": "img/2.jpg",
+    "fileUrl": "",
+    "trailer": "https://youtu.be/hUUszE29jS0",
+    "description": "After finding themselves ensnared in a death trap, seven disillusioned castoffs must embark on a dangerous mission that will force them to confront the darkest corners of their pasts.",
     "episodeIds": []
   },
   {
@@ -100,6 +100,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
