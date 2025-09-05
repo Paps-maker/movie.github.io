@@ -106,7 +106,7 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <script>
-let movies = JSON.parse(localStorage.getItem("movies")) || [];
+let movies = [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
 let editIndex=null;
 
@@ -115,6 +115,7 @@ const searchInput=document.getElementById("search");
 const genreFilter=document.getElementById("genreFilter");
 const yearFilter=document.getElementById("yearFilter");
 
+// Load movies from JSON
 async function loadMovies(){
   try{
     const res=await fetch("movies.json");
@@ -123,11 +124,22 @@ async function loadMovies(){
     renderMovies();
     populateFilters();
     renderAdminMovies();
-    updateWatchlistCount();
-    localStorage.setItem("movies", JSON.stringify(movies));
   }catch(e){ console.warn("Failed loading movies.json",e); }
 }
 loadMovies();
+
+// Save movies to JSON (backend)
+async function saveMoviesToJSON() {
+  try {
+    const res = await fetch('save_movies.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(movies)
+    });
+    const data = await res.json();
+    if(data.status !== "success") console.warn("Failed to save movies:", data.message);
+  } catch(e) { console.error("Error saving movies:", e); }
+}
 
 function renderMovies(){
   grid.innerHTML="";
@@ -291,9 +303,9 @@ document.getElementById("addMovieBtn").addEventListener("click",async ()=>{
 
   const newMovie={title,year,genres,poster:posterSrc,fileId:movieSrc,trailer,description:desc,episodeIds:episodes};
   movies.push(newMovie);
-  localStorage.setItem("movies",JSON.stringify(movies));
   renderMovies();
   renderAdminMovies();
+  await saveMoviesToJSON();
   alert("Movie/Series added successfully");
 });
 
@@ -310,13 +322,14 @@ function renderAdminMovies(){
 }
 
 // Delete movie
-function deleteMovie(i){
+async function deleteMovie(i){
   if(!confirm("Are you sure? This will delete permanently.")) return;
   movies.splice(i,1);
-  localStorage.setItem("movies",JSON.stringify(movies));
   renderMovies();
   renderAdminMovies();
+  await saveMoviesToJSON();
 }
+
 searchInput.addEventListener("input",renderMovies);
 genreFilter.addEventListener("change",renderMovies);
 yearFilter.addEventListener("change",renderMovies);
