@@ -5,7 +5,7 @@
     "genres": ["Action", "Sci-Fi", "Thriller"],
     "poster": "img/inception.jpg",
     "fileId": "movies/inception.mp4",
-    "trailer": "https://www.youtube.com/watch?v=YoHD9XEInc0",
+    "trailer": "https://youtu.be/p4QqMKe3rwY?list=RDp4QqMKe3rwY",
     "description": "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a CEO.",
     "episodeIds": []
   },
@@ -100,3 +100,4 @@
     "episodeIds": []
   }
 ]
+
