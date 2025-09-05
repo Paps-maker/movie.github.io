@@ -14,8 +14,8 @@
     "year": 2025,
     "genres": ["Action", "Sci-Fi"],
     "poster": "img/02.jpg",
-    "fileUrl": "https://youtu.be/fsQgc9pCyDU",
-    "trailer": "https://web.wootly.ch/source?id=48fa47de8e0c029ee1feb05d70839373f87a319f&sig=xpblfX290UVkqFAAM4M30g&expire=1757098520&ofs=11&usr=194760",
+    "fileUrl": "",
+    "trailer": "",
     "description": "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
     "episodeIds": []
   },
@@ -100,6 +100,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
