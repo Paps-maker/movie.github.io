@@ -1,50 +1,23 @@
 <?php
-// upload.php
+// save_movies.php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = file_get_contents('php://input');
+    $movies = json_decode($data, true);
 
-header('Content-Type: application/json');
-
-$uploadDir = "uploads/";
-
-// Create folders if they don't exist
-if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
-if (!file_exists($uploadDir."posters")) mkdir($uploadDir."posters", 0777, true);
-if (!file_exists($uploadDir."movies")) mkdir($uploadDir."movies", 0777, true);
-if (!file_exists($uploadDir."episodes")) mkdir($uploadDir."episodes", 0777, true);
-
-if (!isset($_FILES['file']) || !isset($_POST['type'])) {
-    echo json_encode(["status"=>"error","message"=>"No file or type provided"]);
-    exit;
-}
-
-$file = $_FILES['file'];
-$type = $_POST['type'];
-$targetDir = $uploadDir;
-
-switch($type){
-    case "poster":
-        $targetDir .= "posters/";
-        break;
-    case "movie":
-        $targetDir .= "movies/";
-        break;
-    case "episode":
-        $targetDir .= "episodes/";
-        break;
-    default:
-        echo json_encode(["status"=>"error","message"=>"Invalid type"]);
+    if ($movies === null) {
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Invalid JSON"]);
         exit;
-}
+    }
 
-// Generate unique filename
-$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-$filename = time() . "_" . uniqid() . "." . $ext;
-$targetFile = $targetDir . $filename;
-
-// Move uploaded file
-if(move_uploaded_file($file['tmp_name'], $targetFile)){
-    $url = $targetFile; // Relative URL to store in movies.json
-    echo json_encode(["status"=>"success", "url"=>$url]);
-}else{
-    echo json_encode(["status"=>"error","message"=>"Upload failed"]);
+    // Save JSON to file
+    $jsonFile = 'movies.json';
+    if (file_put_contents($jsonFile, json_encode($movies, JSON_PRETTY_PRINT))) {
+        echo json_encode(["status" => "success", "message" => "Movies saved"]);
+    } else {
+        http_response_code(500);
+        echo json_encode(["status" => "error", "message" => "Failed to save movies"]);
+    }
 }
 ?>
+
