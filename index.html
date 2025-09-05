@@ -7,9 +7,9 @@
 <title>MovieDrift</title>
 <style>
 :root {
-  --bg: #000; --card-bg: #0a0a0a; --accent: #00ff66; --text: #ddd; --muted: #888;
+  --bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#ddd; --muted:#888;
 }
-body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--text); }
+body { margin:0; font-family:Arial,sans-serif; background:var(--bg); color:var(--text); }
 header { display:flex; justify-content:space-between; align-items:center; background:#111; padding:10px 20px; flex-wrap:wrap; }
 .logo { font-size:24px; font-weight:bold; color: var(--accent); }
 .controls { display:flex; gap:10px; flex-wrap:wrap; }
@@ -45,6 +45,8 @@ textarea { resize:vertical; min-height:80px; }
 .remove-btn:hover { background:#c82333; }
 .episode-list { margin-top:10px; }
 .episode-list button { margin:2px; font-size:0.8rem; }
+#uploadProgress { width:100%; background:#222; border-radius:6px; margin-top:10px; display:none; }
+#uploadProgressBar { width:0%; height:20px; background:var(--accent); border-radius:6px; text-align:center; font-size:12px; color:#000; }
 </style>
 </head>
 <body>
@@ -62,7 +64,7 @@ textarea { resize:vertical; min-height:80px; }
 <main><div id="grid" class="grid"></div></main>
 
 <section id="adminPanel">
-  <h3>➕ Add a Movie/Series</h3>
+  <h3>➕ Add/Edit Movie</h3>
   <div class="form-grid">
     <div class="form-control"><label>Title</label><input id="movieTitle" type="text"></div>
     <div class="form-control"><label>Year</label><input id="movieYear" type="number"></div>
@@ -76,7 +78,11 @@ textarea { resize:vertical; min-height:80px; }
       <label>Description</label><textarea id="movieDesc"></textarea>
     </div>
   </div>
-  <div class="submit-row"><button id="addMovieBtn">Add Movie/Series</button></div>
+  <div id="uploadProgress"><div id="uploadProgressBar">0%</div></div>
+  <div class="submit-row">
+    <button id="addMovieBtn">Add Movie/Series</button>
+    <button id="editMovieBtn" style="display:none;">Save Changes</button>
+  </div>
   <h3>📋 Manage Movies</h3>
   <div id="adminMovieList"></div>
 </section>
@@ -103,63 +109,41 @@ textarea { resize:vertical; min-height:80px; }
 </div>
 
 <script>
-// ----- Init storage -----
-let movies = JSON.parse(localStorage.getItem("movies")) || [];
+let movies = [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
-const grid = document.getElementById("grid");
-const searchInput = document.getElementById("search");
-const genreFilter = document.getElementById("genreFilter");
-const yearFilter = document.getElementById("yearFilter");
-const watchlistBtn = document.getElementById("watchlistToggle");
+const ADMIN_PASSWORD = "@Stone001";
 
-// ----- IndexedDB -----
-let db;
-const request = indexedDB.open("MovieDB", 1);
-request.onupgradeneeded = function(e){ db = e.target.result; if(!db.objectStoreNames.contains("files")) db.createObjectStore("files",{keyPath:"id"}); };
-request.onsuccess = function(e){ db = e.target.result; loadMoviesJSON(); };
-request.onerror = function(e){ console.error("DB error", e); loadMoviesJSON(); };
+// Watchlist toggle
+document.getElementById("watchlistToggle").addEventListener("click", showWatchlist);
 
-async function saveFile(id,file){ return new Promise(res=>{ const tx=db.transaction("files","readwrite"); const store=tx.objectStore("files"); store.put({id,file}); tx.oncomplete=()=>res(); }); }
-async function getFile(id){ return new Promise(res=>{ const tx=db.transaction("files","readonly"); const store=tx.objectStore("files"); const req=store.get(id); req.onsuccess=()=>res(req.result?req.result.file:null); }); }
+// Admin login
+document.getElementById("adminLogin").addEventListener("click", () => {
+  const pwd = prompt("Enter admin password:");
+  if (pwd === ADMIN_PASSWORD) {
+    document.getElementById("adminPanel").style.display = "block";
+    alert("✅ Admin mode activated");
+  } else {
+    alert("❌ Wrong password");
+  }
+});
 
-// ----- Save/load -----
-function saveMovies(){ localStorage.setItem("movies",JSON.stringify(movies)); sendToServer(); }
-function saveWatchlist(){ localStorage.setItem("watchlist",JSON.stringify(watchlist)); }
-async function sendToServer(){
-  try{
-    await fetch("save_movies.php",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(movies)});
-    console.log("Movies saved to server");
-  }catch(e){ console.warn("Server save failed",e); }
+// Load movies
+async function loadMovies() {
+  try {
+    const res = await fetch("movies.json");
+    movies = await res.json();
+    renderMovies();
+  } catch (e) { console.warn("Failed to load movies.json", e); }
 }
+loadMovies();
 
-// ----- Load JSON + fallback -----
-async function loadMoviesJSON(){
-  try{
-    const res=await fetch("movies.json");
-    if(!res.ok) throw new Error("Fetch failed");
-    const data=await res.json();
-    if(data.length>0) movies=data;
-    saveMovies();
-  }catch(e){ console.warn("Loading from localStorage due to server error",e); }
-  renderMovies(); populateFilters(); updateWatchlistCount();
-}
-
-// ----- Render -----
-function renderMovies(){
-  grid.innerHTML="";
-  const searchText=searchInput.value.toLowerCase();
-  const genre=genreFilter.value;
-  const year=yearFilter.value;
-  let filtered = movies.filter(m=>{
-    const matchesSearch=m.title.toLowerCase().includes(searchText)||m.description.toLowerCase().includes(searchText);
-    const matchesGenre=genre?m.genres.map(g=>g.toLowerCase()).includes(genre.toLowerCase()):true;
-    const matchesYear=year?m.year==year:true;
-    return matchesSearch&&matchesGenre&&matchesYear;
-  });
-  filtered.forEach((m,i)=>{
-    const card=document.createElement("div");
-    card.className="card";
-    card.innerHTML=`<img class="poster" src="${m.poster}" alt="${m.title}">
+function renderMovies() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  movies.forEach((m, i) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `<img class="poster" src="${m.poster}" alt="${m.title}">
       <div class="card-body">
         <h3 class="movie-title">${m.title}</h3>
         <div class="meta">${m.year} · ${m.genres.join(", ")}</div>
@@ -172,120 +156,98 @@ function renderMovies(){
   });
 }
 
-// ----- Filters -----
-function populateFilters(){
-  let allGenres=new Set();
-  movies.forEach(m=>m.genres.forEach(g=>allGenres.add(g)));
-  genreFilter.innerHTML='<option value="">All genres</option>';
-  allGenres.forEach(g=>{ const opt=document.createElement("option"); opt.value=g; opt.innerText=g; genreFilter.appendChild(opt); });
-  let allYears=[...new Set(movies.map(m=>m.year))].sort((a,b)=>b-a);
-  yearFilter.innerHTML='<option value="">All years</option>';
-  allYears.forEach(y=>{ const opt=document.createElement("option"); opt.value=y; opt.innerText=y; yearFilter.appendChild(opt); });
-}
-
-// ----- YouTube -----
-function convertYouTubeLink(url){
-  if(url.includes("youtube.com/watch?v=")){ const vid=url.split("v=")[1].split("&")[0]; return `https://www.youtube.com/embed/${vid}`; }
-  if(url.includes("youtu.be/")){ const vid=url.split("youtu.be/")[1].split("?")[0]; return `https://www.youtube.com/embed/${vid}`; }
+function convertYouTubeLink(url) {
+  if(url.includes("youtube.com/watch?v=")) return "https://www.youtube.com/embed/" + url.split("v=")[1].split("&")[0] + "?autoplay=1&rel=0";
+  if(url.includes("youtu.be/")) return "https://www.youtube.com/embed/" + url.split("youtu.be/")[1].split("?")[0] + "?autoplay=1&rel=0";
   return url;
 }
 
-// ----- Details Modal -----
-async function viewDetails(i){
-  const m=movies[i];
-  document.getElementById("modalTitle").innerText=m.title;
-  document.getElementById("modalYear").innerText="Year: "+m.year;
-  document.getElementById("modalGenres").innerText="Genres: "+m.genres.join(", ");
-  const player=document.getElementById("modalPlayer");
-  const epList=document.getElementById("episodeList"); epList.innerHTML="";
-  if(m.fileId){ const file=await getFile(m.fileId); const url=URL.createObjectURL(file); player.innerHTML=`<video controls src="${url}"></video>`; }
-  else if(m.trailer) player.innerHTML=`<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
-  else player.innerHTML="<p>No video available</p>";
-  if(m.episodeIds&&m.episodeIds.length>0){
-    for(let idx=0; idx<m.episodeIds.length; idx++){
-      const btn=document.createElement("button");
-      btn.textContent="Episode "+(idx+1);
-      btn.onclick=async ()=>{ const file=await getFile(m.episodeIds[idx]); player.innerHTML=`<video controls src="${URL.createObjectURL(file)}" autoplay></video>`; };
-      epList.appendChild(btn);
-    }
+function viewDetails(i) {
+  const m = movies[i];
+  document.getElementById("modalTitle").innerText = m.title;
+  document.getElementById("modalYear").innerText = "Year: " + m.year;
+  document.getElementById("modalGenres").innerText = "Genres: " + m.genres.join(", ");
+  const player = document.getElementById("modalPlayer");
+  const episodeList = document.getElementById("episodeList");
+  player.innerHTML = "";
+  episodeList.innerHTML = "";
+
+  if (m.fileUrl && m.fileUrl.trim() !== "") {
+    player.innerHTML = `<video controls autoplay src="${m.fileUrl}"></video>`;
+  } else if (m.trailer && m.trailer.trim() !== "") {
+    const embedURL = convertYouTubeLink(m.trailer);
+    player.innerHTML = `<iframe src="${embedURL}" frameborder="0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+  } else {
+    player.innerHTML = "<p>No video available</p>";
   }
-  document.getElementById("modalDesc").innerText=m.description;
-  document.getElementById("modalAddToList").onclick=()=>addToWatchlist(i);
+
+  if (m.episodeIds && m.episodeIds.length > 0) {
+    m.episodeIds.forEach((ep, idx) => {
+      const btn = document.createElement("button");
+      btn.textContent = "Episode " + (idx + 1);
+      btn.onclick = () => { player.innerHTML = `<video controls autoplay src="${ep}"></video>`; };
+      episodeList.appendChild(btn);
+    });
+  }
+
+  document.getElementById("modalDesc").innerText = m.description || "";
   document.getElementById("movieModal").style.display="flex";
+
+  document.getElementById("modalAddToList").onclick = () => addToWatchlist(i);
 }
 
-function closeModal(id){ document.getElementById(id).style.display="none"; if(id==="movieModal") document.getElementById("modalPlayer").innerHTML=""; }
-
-// ----- Watchlist -----
-function addToWatchlist(i){
-  const m=movies[i];
-  if(watchlist.some(w=>w.title===m.title)){ alert("⚠️ Already in list!"); return; }
-  watchlist.push(m); saveWatchlist(); updateWatchlistCount(); alert(`✅ "${m.title}" added!`);
+// Watchlist
+function addToWatchlist(i) {
+  if (!watchlist.find(m => m.title === movies[i].title)) {
+    watchlist.push(movies[i]);
+    saveWatchlist();
+    alert("✅ Added to Watchlist");
+  } else {
+    alert("⚠️ Already in Watchlist");
+  }
+  updateWatchlistButton();
 }
-function updateWatchlistCount(){ watchlistBtn.textContent=`Watchlist (${watchlist.length})`; }
 
-watchlistBtn.addEventListener("click",()=>{
-  const container=document.getElementById("watchlistContainer");
-  container.innerHTML="";
-  if(watchlist.length===0){ container.innerHTML="<p>No movies yet.</p>"; }
-  else{ watchlist.forEach((m,index)=>{
-    const div=document.createElement("div");
-    div.className="watchlist-card";
-    div.innerHTML=`<img src="${m.poster}" alt="${m.title}"><h4>${m.title}</h4><p>${m.year} · ${m.genres.join(", ")}</p>
-      <button class="remove-btn" onclick="removeFromWatchlist(${index})">Remove</button>`;
-    container.appendChild(div);
-  });}
+function showWatchlist() {
+  const container = document.getElementById("watchlistContainer");
+  container.innerHTML = "";
+  if (watchlist.length === 0) {
+    container.innerHTML = "<p>No movies yet.</p>";
+  } else {
+    watchlist.forEach((m, index) => {
+      const div = document.createElement("div");
+      div.className = "watchlist-card";
+      div.innerHTML = `
+        <img src="${m.poster}" alt="${m.title}">
+        <h4>${m.title}</h4>
+        <p>${m.year}</p>
+        <button class="remove-btn" onclick="removeFromWatchlist(${index})">Remove</button>`;
+      container.appendChild(div);
+    });
+  }
   document.getElementById("watchlistModal").style.display="flex";
-});
-function removeFromWatchlist(index){ watchlist.splice(index,1); saveWatchlist(); updateWatchlistCount(); document.getElementById("watchlistToggle").click(); }
-
-// ----- Admin Panel -----
-document.getElementById("adminLogin").addEventListener("click",()=>{
-  const pwd=prompt("Enter admin password:");
-  if(pwd==="@Stone001"){ document.getElementById("adminPanel").style.display="block"; renderAdminMovies(); alert("✅ Admin mode activated!"); }
-  else alert("❌ Wrong password!");
-});
-
-document.getElementById("addMovieBtn").addEventListener("click", async ()=>{
-  const title=document.getElementById("movieTitle").value.trim();
-  const year=document.getElementById("movieYear").value.trim();
-  const genres=document.getElementById("movieGenres").value.trim().split(",").map(g=>g.trim()).filter(Boolean);
-  const desc=document.getElementById("movieDesc").value.trim();
-  const posterFile=document.getElementById("moviePosterFile").files[0];
-  const posterURL=document.getElementById("moviePosterURL").value.trim();
-  const movieFile=document.getElementById("movieFile").files[0];
-  const trailer=document.getElementById("movieTrailer").value.trim();
-  const episodeFiles=document.getElementById("seriesEpisodes").files;
-  if(!title||!year||!genres.length||(!posterFile&&!posterURL)||(!movieFile&&!trailer&&!episodeFiles.length)||!desc){ alert("⚠️ Please fill in all required fields!"); return; }
-
-  const posterSrc = posterFile ? await new Promise(res=>{ const r=new FileReader(); r.onload=e=>res(e.target.result); r.readAsDataURL(posterFile); }) : posterURL;
-  const movieId = "movie_"+Date.now(); if(movieFile) await saveFile(movieId,movieFile);
-
-  const episodeIds=[];
-  for(let f of episodeFiles){ const eid="ep_"+Date.now()+"_"+Math.random(); await saveFile(eid,f); episodeIds.push(eid); }
-
-  const movieData={title,year,genres,poster:posterSrc,fileId:movieFile?movieId:null,trailer:trailer||"",description:desc,episodeIds};
-  movies.push(movieData); saveMovies(); renderMovies(); populateFilters(); renderAdminMovies();
-  alert(`✅ Movie/Series "${title}" added!`);
-  document.querySelectorAll("#adminPanel input, #adminPanel textarea").forEach(el=>el.value="");
-});
-
-function renderAdminMovies(){
-  const container=document.getElementById("adminMovieList");
-  container.innerHTML="";
-  if(movies.length===0){ container.innerHTML="<p>No movies added yet.</p>"; return; }
-  movies.forEach((m,i)=>{
-    const div=document.createElement("div"); div.style.border="1px solid #333"; div.style.padding="10px"; div.style.margin="5px 0"; div.style.borderRadius="6px";
-    div.innerHTML=`<strong>${m.title}</strong> (${m.year}) <button onclick="deleteMovie(${i})" style="margin-left:10px;">Delete</button>`;
-    container.appendChild(div);
-  });
 }
-function deleteMovie(i){ if(confirm("Delete this movie?")){ movies.splice(i,1); saveMovies(); renderMovies(); populateFilters(); renderAdminMovies(); } }
 
-// ----- Events -----
-searchInput.addEventListener("input",renderMovies);
-genreFilter.addEventListener("change",renderMovies);
-yearFilter.addEventListener("change",renderMovies);
+function removeFromWatchlist(index) {
+  watchlist.splice(index, 1);
+  saveWatchlist();
+  showWatchlist();
+  updateWatchlistButton();
+}
+
+function saveWatchlist() {
+  localStorage.setItem("watchlist", JSON.stringify(watchlist));
+}
+
+function updateWatchlistButton() {
+  document.getElementById("watchlistToggle").textContent = `Watchlist (${watchlist.length})`;
+}
+
+updateWatchlistButton();
+
+function closeModal(id) {
+  document.getElementById(id).style.display="none";
+}
 </script>
 </body>
 </html>
