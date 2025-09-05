@@ -14,17 +14,18 @@ header { display:flex; justify-content:space-between; align-items:center; backgr
 .logo { font-size:24px; font-weight:bold; color: var(--accent); }
 .controls { display:flex; gap:10px; flex-wrap:wrap; }
 input, select, button, textarea { padding:6px 10px; border:1px solid var(--accent); border-radius:4px; background: var(--card-bg); color: var(--text); }
-button { cursor:pointer; font-weight:bold; } button:hover { background:#003300; }
+button { cursor:pointer; font-weight:bold; }
+button:hover { background:#003300; }
 main { padding:20px; }
 .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap:20px; }
 .card { background: var(--card-bg); border:1px solid rgba(0,255,102,0.15); border-radius:8px; overflow:hidden; display:flex; flex-direction:column; transition: transform 0.2s; }
 .card:hover { transform: scale(1.05); }
-.poster { width:100%; height:300px; object-fit:cover; }
+.poster { width:100%; height:300px; object-fit:cover; cursor:pointer; }
 .card-body { padding:10px; flex-grow:1; display:flex; flex-direction:column; justify-content:space-between; }
 .movie-title { font-size:16px; font-weight:bold; color:var(--accent); margin:0; }
 .meta { font-size:13px; color:var(--muted); margin:4px 0; }
-.card-actions { display:flex; gap:5px; flex-wrap:wrap; }
-.btn { flex:1; text-align:center; }
+.card-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.btn { flex:none; min-width:100px; padding:10px 6px; text-align:center; background:#111; border:1px solid var(--accent); border-radius:4px; color: var(--text); font-size:14px; cursor:pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:1000; overflow-y:auto; }
 .modal-content { background:var(--card-bg); max-width:900px; width:95%; max-height:90vh; overflow-y:auto; border-radius:8px; padding:20px; position:relative; }
 .close { position:absolute; top:10px; right:15px; cursor:pointer; color:var(--accent); font-size:22px; }
@@ -45,7 +46,6 @@ textarea { resize:vertical; min-height:80px; }
 .remove-btn:hover { background:#c82333; }
 .episode-list { margin-top:10px; }
 .episode-list button { margin:2px; font-size:0.8rem; }
-
 /* Upload progress bar */
 #uploadProgress { width:100%; background:#222; border-radius:6px; margin-top:10px; display:none; }
 #uploadProgressBar { width:0%; height:20px; background:var(--accent); border-radius:6px; text-align:center; font-size:12px; color:#000; }
@@ -113,7 +113,7 @@ textarea { resize:vertical; min-height:80px; }
 <script>
 let movies = [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
-const ADMIN_PASSWORD = "@Stone001"; // 🔑 your admin password
+const ADMIN_PASSWORD = "@Stone001"; 
 
 // Watchlist toggle
 document.getElementById("watchlistToggle").addEventListener("click", showWatchlist);
@@ -128,40 +128,6 @@ document.getElementById("adminLogin").addEventListener("click", () => {
     alert("❌ Wrong password");
   }
 });
-
-// File uploader with progress
-function uploadFileWithProgress(file, type) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    const form = new FormData();
-    form.append("file", file);
-    form.append("type", type);
-
-    const progressBar = document.getElementById("uploadProgressBar");
-    document.getElementById("uploadProgress").style.display = "block";
-
-    xhr.upload.onprogress = e => {
-      if (e.lengthComputable) {
-        const percent = Math.round((e.loaded / e.total) * 100);
-        progressBar.style.width = percent + "%";
-        progressBar.textContent = percent + "%";
-      }
-    };
-
-    xhr.onload = () => {
-      if (xhr.status === 200) {
-        try {
-          const res = JSON.parse(xhr.responseText);
-          if (res.status === "success") resolve(res.url);
-          else reject(res.message);
-        } catch(err) { reject("Invalid response"); }
-      } else reject("Upload failed");
-    };
-
-    xhr.onerror = () => reject("XHR error");
-    xhr.send(form);
-  });
-}
 
 // Load movies
 async function loadMovies() {
@@ -179,16 +145,23 @@ function renderMovies() {
   movies.forEach((m, i) => {
     const card = document.createElement("div");
     card.className = "card";
-    card.innerHTML = `<img class="poster" src="${m.poster}" alt="${m.title}">
+    const html = `
+      <img class="poster" src="${m.poster}" alt="${m.title}">
       <div class="card-body">
         <h3 class="movie-title">${m.title}</h3>
         <div class="meta">${m.year} · ${m.genres.join(", ")}</div>
         <div class="card-actions">
-          <button class="btn" onclick="viewDetails(${i})">Details</button>
-          <button class="btn" onclick="addToWatchlist(${i})">Add to List</button>
+          <button class="details-btn">Details</button>
+          <button class="watchlist-btn">Add to List</button>
         </div>
-      </div>`;
+      </div>
+    `;
+    card.innerHTML = html;
     grid.appendChild(card);
+
+    card.querySelector(".poster").addEventListener("click", () => viewDetails(i));
+    card.querySelector(".details-btn").addEventListener("click", () => viewDetails(i));
+    card.querySelector(".watchlist-btn").addEventListener("click", () => addToWatchlist(i));
   });
 }
 
@@ -198,7 +171,6 @@ function convertYouTubeLink(url) {
   return url;
 }
 
-// Play movie/trailer/episodes in modal
 function viewDetails(i) {
   const m = movies[i];
   document.getElementById("modalTitle").innerText = m.title;
@@ -209,8 +181,8 @@ function viewDetails(i) {
   player.innerHTML = "";
   episodeList.innerHTML = "";
 
-  if (m.fileId && m.fileId.trim() !== "") {
-    player.innerHTML = `<video controls src="${m.fileId}" autoplay></video>`;
+  if (m.fileUrl && m.fileUrl.trim() !== "") {
+    player.innerHTML = `<video controls src="${m.fileUrl}" autoplay></video>`;
   } else if (m.trailer && m.trailer.trim() !== "") {
     player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
   } else {
@@ -221,6 +193,7 @@ function viewDetails(i) {
     m.episodeIds.forEach((ep, idx) => {
       const btn = document.createElement("button");
       btn.textContent = "Episode " + (idx + 1);
+      btn.className = "btn";
       btn.onclick = () => {
         player.innerHTML = `<video controls src="${ep}" autoplay></video>`;
       };
@@ -231,11 +204,9 @@ function viewDetails(i) {
   document.getElementById("modalDesc").innerText = m.description || "";
   document.getElementById("movieModal").style.display="flex";
 
-  // Add to watchlist button
   document.getElementById("modalAddToList").onclick = () => addToWatchlist(i);
 }
 
-// Watchlist
 function addToWatchlist(i) {
   if (!watchlist.find(m => m.title === movies[i].title)) {
     watchlist.push(movies[i]);
@@ -260,8 +231,11 @@ function showWatchlist() {
         <img src="${m.poster}" alt="${m.title}">
         <h4>${m.title}</h4>
         <p>${m.year}</p>
-        <button class="remove-btn" onclick="removeFromWatchlist(${index})">Remove</button>`;
+        <button class="remove-btn">Remove</button>`;
       container.appendChild(div);
+      div.querySelector(".remove-btn").addEventListener("click", () => {
+        removeFromWatchlist(index);
+      });
     });
   }
   document.getElementById("watchlistModal").style.display="flex";
@@ -290,4 +264,3 @@ function closeModal(id) {
 </script>
 </body>
 </html>
-
