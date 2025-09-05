@@ -113,6 +113,21 @@ textarea { resize:vertical; min-height:80px; }
 <script>
 let movies = [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
+const ADMIN_PASSWORD = "@Stone001"; // 🔑 your admin password
+
+// Watchlist toggle
+document.getElementById("watchlistToggle").addEventListener("click", showWatchlist);
+
+// Admin login
+document.getElementById("adminLogin").addEventListener("click", () => {
+  const pwd = prompt("Enter admin password:");
+  if (pwd === ADMIN_PASSWORD) {
+    document.getElementById("adminPanel").style.display = "block";
+    alert("✅ Admin mode activated");
+  } else {
+    alert("❌ Wrong password");
+  }
+});
 
 // File uploader with progress
 function uploadFileWithProgress(file, type) {
@@ -183,51 +198,96 @@ function convertYouTubeLink(url) {
   return url;
 }
 
+// Play movie/trailer/episodes in modal
 function viewDetails(i) {
   const m = movies[i];
   document.getElementById("modalTitle").innerText = m.title;
   document.getElementById("modalYear").innerText = "Year: " + m.year;
   document.getElementById("modalGenres").innerText = "Genres: " + m.genres.join(", ");
   const player = document.getElementById("modalPlayer");
+  const episodeList = document.getElementById("episodeList");
   player.innerHTML = "";
+  episodeList.innerHTML = "";
 
-  if(m.fileId) {
+  if (m.fileId && m.fileId.trim() !== "") {
     player.innerHTML = `<video controls src="${m.fileId}" autoplay></video>`;
-  } else if(m.trailer) {
+  } else if (m.trailer && m.trailer.trim() !== "") {
     player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
   } else {
     player.innerHTML = "<p>No video available</p>";
   }
 
-  document.getElementById("movieModal").style.display="flex";
-}
-
-// Add Movie
-document.getElementById("addMovieBtn").addEventListener("click", async () => {
-  const title = document.getElementById("movieTitle").value.trim();
-  const year = document.getElementById("movieYear").value.trim();
-  const genres = document.getElementById("movieGenres").value.trim().split(",").map(g=>g.trim()).filter(Boolean);
-  const desc = document.getElementById("movieDesc").value.trim();
-  const posterFile = document.getElementById("moviePosterFile").files[0];
-  const posterURL = document.getElementById("moviePosterURL").value.trim();
-  const movieFile = document.getElementById("movieFile").files[0];
-  const trailer = document.getElementById("movieTrailer").value.trim();
-
-  if(!title || !year || !genres.length || (!posterFile && !posterURL) || (!movieFile && !trailer)) {
-    alert("Please fill all fields"); return;
+  if (m.episodeIds && m.episodeIds.length > 0) {
+    m.episodeIds.forEach((ep, idx) => {
+      const btn = document.createElement("button");
+      btn.textContent = "Episode " + (idx + 1);
+      btn.onclick = () => {
+        player.innerHTML = `<video controls src="${ep}" autoplay></video>`;
+      };
+      episodeList.appendChild(btn);
+    });
   }
 
-  let posterSrc = posterURL;
-  if (posterFile) posterSrc = await uploadFileWithProgress(posterFile, "poster");
+  document.getElementById("modalDesc").innerText = m.description || "";
+  document.getElementById("movieModal").style.display="flex";
 
-  let movieSrc = "";
-  if (movieFile) movieSrc = await uploadFileWithProgress(movieFile, "movie");
+  // Add to watchlist button
+  document.getElementById("modalAddToList").onclick = () => addToWatchlist(i);
+}
 
-  const newMovie = { title, year, genres, poster:posterSrc, fileId:movieSrc, trailer, description:desc };
-  movies.push(newMovie);
-  renderMovies();
-  alert("Movie added!");
-});
+// Watchlist
+function addToWatchlist(i) {
+  if (!watchlist.find(m => m.title === movies[i].title)) {
+    watchlist.push(movies[i]);
+    saveWatchlist();
+    alert("✅ Added to Watchlist");
+  } else {
+    alert("⚠️ Already in Watchlist");
+  }
+  updateWatchlistButton();
+}
+
+function showWatchlist() {
+  const container = document.getElementById("watchlistContainer");
+  container.innerHTML = "";
+  if (watchlist.length === 0) {
+    container.innerHTML = "<p>No movies yet.</p>";
+  } else {
+    watchlist.forEach((m, index) => {
+      const div = document.createElement("div");
+      div.className = "watchlist-card";
+      div.innerHTML = `
+        <img src="${m.poster}" alt="${m.title}">
+        <h4>${m.title}</h4>
+        <p>${m.year}</p>
+        <button class="remove-btn" onclick="removeFromWatchlist(${index})">Remove</button>`;
+      container.appendChild(div);
+    });
+  }
+  document.getElementById("watchlistModal").style.display="flex";
+}
+
+function removeFromWatchlist(index) {
+  watchlist.splice(index, 1);
+  saveWatchlist();
+  showWatchlist();
+  updateWatchlistButton();
+}
+
+function saveWatchlist() {
+  localStorage.setItem("watchlist", JSON.stringify(watchlist));
+}
+
+function updateWatchlistButton() {
+  document.getElementById("watchlistToggle").textContent = `Watchlist (${watchlist.length})`;
+}
+
+updateWatchlistButton();
+
+function closeModal(id) {
+  document.getElementById(id).style.display="none";
+}
 </script>
 </body>
 </html>
+
