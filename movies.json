@@ -5,22 +5,23 @@
     "genres": ["Action", "Comedy", "Thriller"],
     "poster": "img/1.jpg",
     "fileUrl": "movies/inception.mp4",
-    "trailer": "p4QqMKe3rwY?list=RDp4QqMKe3rwY",
-    "description": "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a CEO.",
+    "trailer": "https://youtu.be/-5X2pt95cIo",
+    "description": "Nobody 2 is an 87North/Eighty Two Films/Odenkirk Provissiero Entertainment
+production, directed by Timo Tjahjanto (The Night Comes for Us, The Big 4). ",
     "episodeIds": []
   },
   {
-    "title": "The Matrix",
-    "year": 1999,
+    "title": "Mission: Impossible - The Final Reckoning",
+    "year": 2025,
     "genres": ["Action", "Sci-Fi"],
-    "poster": "img/matrix.jpg",
-    "fileUrl": "movies/matrix.mp4",
-    "trailer": "https://www.youtube.com/watch?v=vKQi3bBA1y8",
+    "poster": "img/02.jpg",
+    "fileUrl": "https://youtu.be/fsQgc9pCyDU",
+    "trailer": "https://web.wootly.ch/source?id=48fa47de8e0c029ee1feb05d70839373f87a319f&sig=xpblfX290UVkqFAAM4M30g&expire=1757098520&ofs=11&usr=194760",
     "description": "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
     "episodeIds": []
   },
   {
-    "title": "Spider-Man: No Way Home",
+    "title": "Thunderbolts*",
     "year": 2021,
     "genres": ["Action", "Adventure", "Fantasy"],
     "poster": "img/spiderman.jpg",
@@ -100,6 +101,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
