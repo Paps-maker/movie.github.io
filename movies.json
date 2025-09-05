@@ -1,6 +1,6 @@
 [
   {
-    "title": "Nobody 2",
+    "title": "Nobody ",
     "year": 2025,
     "genres": ["Action", "Comedy", "Thriller"],
     "poster": "img/1.jpg",
@@ -100,6 +100,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
