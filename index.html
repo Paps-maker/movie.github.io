@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="img/logo.png" type="image/png">
-  <title>MovieDrift</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="img/logo.png" type="image/png">
+<title>MovieDrift</title>
+<style>
 :root {
   --bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#ddd; --muted:#888;
 }
@@ -49,7 +49,7 @@ textarea { resize:vertical; min-height:80px; }
 /* Upload progress bar */
 #uploadProgress { width:100%; background:#222; border-radius:6px; margin-top:10px; display:none; }
 #uploadProgressBar { width:0%; height:20px; background:var(--accent); border-radius:6px; text-align:center; font-size:12px; color:#000; }
-  </style>
+</style>
 </head>
 <body>
 <header>
@@ -80,9 +80,10 @@ textarea { resize:vertical; min-height:80px; }
       <label>Description</label><textarea id="movieDesc"></textarea>
     </div>
   </div>
-  <div id="uploadProgress"><div id="uploadProgressBar">0%</</div></div>
+  <div id="uploadProgress"><div id="uploadProgressBar">0%</div></div>
   <div class="submit-row">
     <button id="addMovieBtn">Add Movie/Series</button>
+    <button id="editMovieBtn" style="display:none;">Save Changes</button>
   </div>
   <h3>📋 Manage Movies</h3>
   <div id="adminMovieList"></div>
@@ -112,7 +113,10 @@ textarea { resize:vertical; min-height:80px; }
 <script>
 let movies = [];
 let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
-const ADMIN_PASSWORD = "@Stone001";
+const ADMIN_PASSWORD = "@Stone001"; // 🔑 your admin password
+
+// Watchlist toggle
+document.getElementById("watchlistToggle").addEventListener("click", showWatchlist);
 
 // Admin login
 document.getElementById("adminLogin").addEventListener("click", () => {
@@ -278,7 +282,6 @@ function updateWatchlistButton() {
   document.getElementById("watchlistToggle").textContent = `Watchlist (${watchlist.length})`;
 }
 
-document.getElementById("watchlistToggle").addEventListener("click", showWatchlist);
 updateWatchlistButton();
 
 function closeModal(id) {
@@ -287,3 +290,4 @@ function closeModal(id) {
 </script>
 </body>
 </html>
+
