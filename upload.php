@@ -1,46 +1,41 @@
 <?php
-// upload.php
 header('Content-Type: application/json');
 
-$uploadDir = "uploads/";
-
-// Create folders if they don't exist
-$folders = ["posters", "movies", "episodes"];
-foreach($folders as $f){
-    if(!file_exists("$uploadDir$f")) mkdir("$uploadDir$f", 0777, true);
+// Make sure uploads directory exists
+$uploadDir = 'uploads/';
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0777, true);
 }
 
-if(!isset($_FILES['file']) || !isset($_POST['type'])){
-    echo json_encode(["status"=>"error","message"=>"No file or type provided"]);
+if (!isset($_FILES['file'])) {
+    echo json_encode(['status'=>'error', 'message'=>'No file sent']);
     exit;
 }
 
 $file = $_FILES['file'];
-$type = $_POST['type'];
+$type = isset($_POST['type']) ? $_POST['type'] : 'file';
 
-$targetDir = match($type){
-    "poster" => $uploadDir . "posters/",
-    "movie" => $uploadDir . "movies/",
-    "episode" => $uploadDir . "episodes/",
-    default => null
-};
+// Validate file type (optional, you can customize)
+$allowedImage = ['image/jpeg','image/png','image/gif'];
+$allowedVideo = ['video/mp4'];
 
-if(!$targetDir){
-    echo json_encode(["status"=>"error","message"=>"Invalid type"]);
+if ($type === 'poster' && !in_array($file['type'], $allowedImage)) {
+    echo json_encode(['status'=>'error', 'message'=>'Invalid poster type']);
+    exit;
+}
+if (($type === 'movie' || $type === 'episode') && !in_array($file['type'], $allowedVideo)) {
+    echo json_encode(['status'=>'error', 'message'=>'Invalid video type']);
     exit;
 }
 
-// Generate unique filename
+// Create unique filename
 $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-$filename = time() . "_" . uniqid() . "." . $ext;
-$targetFile = $targetDir . $filename;
+$targetFile = $uploadDir . time() . '_' . preg_replace('/\s+/', '_', basename($file['name']));
 
 // Move uploaded file
-if(move_uploaded_file($file['tmp_name'], $targetFile)){
-    // Return relative path for front-end
-    $url = $targetFile;
-    echo json_encode(["status"=>"success","url"=>$url]);
-}else{
-    echo json_encode(["status"=>"error","message"=>"Upload failed"]);
+if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+    echo json_encode(['status'=>'success', 'url'=>$targetFile]);
+} else {
+    echo json_encode(['status'=>'error', 'message'=>'Upload failed']);
 }
 ?>
