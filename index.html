@@ -29,13 +29,6 @@ main { padding:20px; }
 .modal-content { background:var(--card-bg); max-width:900px; width:95%; max-height:90vh; overflow-y:auto; border-radius:8px; padding:20px; position:relative; }
 .close { position:absolute; top:10px; right:15px; cursor:pointer; color:var(--accent); font-size:22px; }
 iframe, video { width:100%; height:400px; border-radius:6px; }
-#adminPanel { display:none; padding:20px; background:var(--card-bg); border-top:1px solid rgba(0,255,102,0.15); }
-#adminPanel h3 { color:var(--accent); margin-bottom:10px; }
-.form-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:15px; }
-label { font-size:13px; color:var(--muted); margin-bottom:3px; display:block; }
-.form-control { display:flex; flex-direction:column; }
-textarea { resize:vertical; min-height:80px; }
-.submit-row { margin-top:15px; text-align:right; }
 #watchlistModal h2 { color:var(--accent); margin-bottom:15px; }
 #watchlistModal .movie-list { display:grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:15px; }
 .watchlist-card { background:#111; border-radius:8px; padding:10px; text-align:center; transition:transform 0.2s; }
@@ -45,8 +38,6 @@ textarea { resize:vertical; min-height:80px; }
 .remove-btn:hover { background:#c82333; }
 .episode-list { margin-top:10px; }
 .episode-list button { margin:2px; font-size:0.8rem; }
-#uploadProgress { width:100%; background:#222; border-radius:6px; margin-top:10px; display:none; }
-#uploadProgressBar { width:0%; height:20px; background:var(--accent); border-radius:6px; text-align:center; font-size:12px; color:#000; }
 </style>
 </head>
 <body>
@@ -57,7 +48,6 @@ textarea { resize:vertical; min-height:80px; }
     <select id="genreFilter"><option value="">All genres</option></select>
     <select id="yearFilter"><option value="">All years</option></select>
     <button id="watchlistToggle">Watchlist (0)</button>
-    <button id="adminLogin">Admin Login</button>
   </div>
 </header>
 
@@ -92,15 +82,54 @@ async function loadMovies() {
   try {
     const res = await fetch("movies.json");
     movies = await res.json();
+    populateFilters();
     renderMovies();
   } catch (e) { console.warn("Failed to load movies.json", e); }
 }
 loadMovies();
 
+// Populate genre/year dropdowns dynamically
+function populateFilters() {
+  const genreSet = new Set();
+  const yearSet = new Set();
+  movies.forEach(m => {
+    m.genres.forEach(g => genreSet.add(g));
+    yearSet.add(m.year);
+  });
+
+  const genreFilter = document.getElementById("genreFilter");
+  genreSet.forEach(g => {
+    const opt = document.createElement("option");
+    opt.value = g;
+    opt.textContent = g;
+    genreFilter.appendChild(opt);
+  });
+
+  const yearFilter = document.getElementById("yearFilter");
+  Array.from(yearSet).sort((a,b)=>b-a).forEach(y=>{
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    yearFilter.appendChild(opt);
+  });
+}
+
+// Render movies with filters and search
 function renderMovies() {
   const grid = document.getElementById("grid");
+  const searchText = document.getElementById("search").value.toLowerCase();
+  const selectedGenre = document.getElementById("genreFilter").value;
+  const selectedYear = document.getElementById("yearFilter").value;
   grid.innerHTML = "";
-  movies.forEach((m, i) => {
+
+  const filtered = movies.filter(m => {
+    const matchesSearch = m.title.toLowerCase().includes(searchText);
+    const matchesGenre = !selectedGenre || m.genres.includes(selectedGenre);
+    const matchesYear = !selectedYear || m.year == selectedYear;
+    return matchesSearch && matchesGenre && matchesYear;
+  });
+
+  filtered.forEach((m, i) => {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `<img class="poster" src="${m.poster}" alt="${m.title}">
@@ -117,20 +146,15 @@ function renderMovies() {
   });
 }
 
+// Convert YouTube URL to embed link
 function convertYouTubeLink(url) {
   try {
     let videoId = '';
-    if (url.includes("youtube.com/watch?v=")) {
-      videoId = url.split("v=")[1].split("&")[0];
-    } else if (url.includes("youtu.be/")) {
-      videoId = url.split("youtu.be/")[1].split("?")[0];
-    } else {
-      return url; // fallback
-    }
-    return `https://www.youtube.com/embed/${videoId}?rel=0`; // proper embed
-  } catch {
-    return url;
-  }
+    if (url.includes("youtube.com/watch?v=")) videoId = url.split("v=")[1].split("&")[0];
+    else if (url.includes("youtu.be/")) videoId = url.split("youtu.be/")[1].split("?")[0];
+    else return url;
+    return `https://www.youtube.com/embed/${videoId}?rel=0`;
+  } catch { return url; }
 }
 
 function viewDetails(i) {
@@ -140,69 +164,31 @@ function viewDetails(i) {
   player.innerHTML = "";
   episodeList.innerHTML = "";
 
-  if (m.fileUrl && m.fileUrl.trim() !== "") {
-    player.innerHTML = `<video controls src="${m.fileUrl}"></video>`;
-  } else if (m.trailer && m.trailer.trim() !== "") {
-    const ytURL = convertYouTubeLink(m.trailer);
-    player.innerHTML = `<iframe 
-                          src="${ytURL}" 
-                          frameborder="0" 
-                          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                          allowfullscreen>
-                        </iframe>`;
-  } else {
-    player.innerHTML = "<p>No video available</p>";
-  }
+  if (m.fileUrl) player.innerHTML = `<video controls src="${m.fileUrl}"></video>`;
+  else if (m.trailer) player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  else player.innerHTML = "<p>No video available</p>";
 
-  if (m.episodeIds && m.episodeIds.length > 0) {
-    m.episodeIds.forEach((ep, idx) => {
+  if (m.episodeIds && m.episodeIds.length>0) {
+    m.episodeIds.forEach((ep, idx)=>{
       const btn = document.createElement("button");
-      btn.textContent = "Episode " + (idx + 1);
-      btn.onclick = () => { player.innerHTML = `<video controls src="${ep}"></video>`; };
+      btn.textContent = "Episode "+(idx+1);
+      btn.onclick = ()=>{ player.innerHTML = `<video controls src="${ep}"></video>`; };
       episodeList.appendChild(btn);
     });
   }
 
   document.getElementById("modalTitle").innerText = m.title;
-  document.getElementById("modalYear").innerText = "Year: " + m.year;
-  document.getElementById("modalGenres").innerText = "Genres: " + m.genres.join(", ");
+  document.getElementById("modalYear").innerText = "Year: "+m.year;
+  document.getElementById("modalGenres").innerText = "Genres: "+m.genres.join(", ");
   document.getElementById("modalDesc").innerText = m.description || "";
   document.getElementById("movieModal").style.display = "flex";
-  document.getElementById("modalAddToList").onclick = () => addToWatchlist(i);
+  document.getElementById("modalAddToList").onclick = ()=>addToWatchlist(i);
 }
 
-function watchTrailer(i) {
-  const m = movies[i];
-  const player = document.getElementById("modalPlayer");
-  const episodeList = document.getElementById("episodeList");
-  player.innerHTML = "";
-  episodeList.innerHTML = "";
+function watchTrailer(i) { viewDetails(i); }
 
-  if (m.trailer && m.trailer.trim() !== "") {
-    const ytURL = convertYouTubeLink(m.trailer);
-    player.innerHTML = `<iframe 
-                          src="${ytURL}" 
-                          frameborder="0" 
-                          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                          allowfullscreen>
-                        </iframe>`;
-  } else if (m.fileUrl && m.fileUrl.trim() !== "") {
-    player.innerHTML = `<video controls src="${m.fileUrl}"></video>`;
-  } else {
-    player.innerHTML = "<p>No video available</p>";
-  }
-
-  document.getElementById("modalTitle").innerText = m.title;
-  document.getElementById("modalYear").innerText = "Year: " + m.year;
-  document.getElementById("modalGenres").innerText = "Genres: " + m.genres.join(", ");
-  document.getElementById("modalDesc").innerText = m.description || "";
-  document.getElementById("movieModal").style.display = "flex";
-  document.getElementById("modalAddToList").onclick = () => addToWatchlist(i);
-}
-
-// Watchlist functions
 function addToWatchlist(i) {
-  if (!watchlist.find(m => m.title === movies[i].title)) {
+  if (!watchlist.find(m => m.title===movies[i].title)) {
     watchlist.push(movies[i]);
     saveWatchlist();
     alert("✅ Added to Watchlist");
@@ -213,31 +199,29 @@ function addToWatchlist(i) {
 function showWatchlist() {
   const container = document.getElementById("watchlistContainer");
   container.innerHTML = "";
-  if (watchlist.length === 0) container.innerHTML = "<p>No movies yet.</p>";
-  else watchlist.forEach((m, index) => {
+  if (!watchlist.length) container.innerHTML = "<p>No movies yet.</p>";
+  else watchlist.forEach((m, idx)=>{
     const div = document.createElement("div");
-    div.className = "watchlist-card";
+    div.className="watchlist-card";
     div.innerHTML = `<img src="${m.poster}" alt="${m.title}">
                      <h4>${m.title}</h4><p>${m.year}</p>
-                     <button class="remove-btn" onclick="removeFromWatchlist(${index})">Remove</button>`;
+                     <button class="remove-btn" onclick="removeFromWatchlist(${idx})">Remove</button>`;
     container.appendChild(div);
   });
   document.getElementById("watchlistModal").style.display="flex";
 }
 
-function removeFromWatchlist(index) {
-  watchlist.splice(index, 1);
-  saveWatchlist();
-  showWatchlist();
-  updateWatchlistButton();
-}
-
-function saveWatchlist() { localStorage.setItem("watchlist", JSON.stringify(watchlist)); }
-function updateWatchlistButton() { document.getElementById("watchlistToggle").textContent = `Watchlist (${watchlist.length})`; }
+function removeFromWatchlist(i){ watchlist.splice(i,1); saveWatchlist(); showWatchlist(); updateWatchlistButton(); }
+function saveWatchlist(){ localStorage.setItem("watchlist", JSON.stringify(watchlist)); }
+function updateWatchlistButton(){ document.getElementById("watchlistToggle").textContent = `Watchlist (${watchlist.length})`; }
 updateWatchlistButton();
 document.getElementById("watchlistToggle").onclick = showWatchlist;
+function closeModal(id){ document.getElementById(id).style.display="none"; }
 
-function closeModal(id) { document.getElementById(id).style.display="none"; }
+// Filters + search
+document.getElementById("search").addEventListener("input", renderMovies);
+document.getElementById("genreFilter").addEventListener("change", renderMovies);
+document.getElementById("yearFilter").addEventListener("change", renderMovies);
 </script>
 </body>
 </html>
