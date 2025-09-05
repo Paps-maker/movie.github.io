@@ -183,51 +183,40 @@ function convertYouTubeLink(url) {
   return url;
 }
 
+// Play movie/trailer/episodes in modal
 function viewDetails(i) {
   const m = movies[i];
   document.getElementById("modalTitle").innerText = m.title;
   document.getElementById("modalYear").innerText = "Year: " + m.year;
   document.getElementById("modalGenres").innerText = "Genres: " + m.genres.join(", ");
   const player = document.getElementById("modalPlayer");
+  const episodeList = document.getElementById("episodeList");
   player.innerHTML = "";
+  episodeList.innerHTML = "";
 
-  if(m.fileId) {
+  if (m.fileId && m.fileId.trim() !== "") {
     player.innerHTML = `<video controls src="${m.fileId}" autoplay></video>`;
-  } else if(m.trailer) {
+  } else if (m.trailer && m.trailer.trim() !== "") {
     player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
   } else {
     player.innerHTML = "<p>No video available</p>";
   }
 
-  document.getElementById("movieModal").style.display="flex";
-}
-
-// Add Movie
-document.getElementById("addMovieBtn").addEventListener("click", async () => {
-  const title = document.getElementById("movieTitle").value.trim();
-  const year = document.getElementById("movieYear").value.trim();
-  const genres = document.getElementById("movieGenres").value.trim().split(",").map(g=>g.trim()).filter(Boolean);
-  const desc = document.getElementById("movieDesc").value.trim();
-  const posterFile = document.getElementById("moviePosterFile").files[0];
-  const posterURL = document.getElementById("moviePosterURL").value.trim();
-  const movieFile = document.getElementById("movieFile").files[0];
-  const trailer = document.getElementById("movieTrailer").value.trim();
-
-  if(!title || !year || !genres.length || (!posterFile && !posterURL) || (!movieFile && !trailer)) {
-    alert("Please fill all fields"); return;
+  // Episodes if available
+  if (m.episodeIds && m.episodeIds.length > 0) {
+    m.episodeIds.forEach((ep, idx) => {
+      const btn = document.createElement("button");
+      btn.textContent = "Episode " + (idx + 1);
+      btn.onclick = () => {
+        player.innerHTML = `<video controls src="${ep}" autoplay></video>`;
+      };
+      episodeList.appendChild(btn);
+    });
   }
 
-  let posterSrc = posterURL;
-  if (posterFile) posterSrc = await uploadFileWithProgress(posterFile, "poster");
-
-  let movieSrc = "";
-  if (movieFile) movieSrc = await uploadFileWithProgress(movieFile, "movie");
-
-  const newMovie = { title, year, genres, poster:posterSrc, fileId:movieSrc, trailer, description:desc };
-  movies.push(newMovie);
-  renderMovies();
-  alert("Movie added!");
-});
+  document.getElementById("modalDesc").innerText = m.description || "";
+  document.getElementById("movieModal").style.display="flex";
+}
 </script>
 </body>
 </html>
