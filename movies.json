@@ -17,7 +17,7 @@
     "type": "Movie",
     "poster": "img/02.jpg",
     "fileUrl": "https://vidsrc.xyz/embed/movie/tt9603208",
-    "trailer": "",
+    "trailer": "https://vidsrc.xyz/embed/movie/tt9603208",
     "description": "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
     "episodeIds": []
   },
@@ -209,6 +209,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
