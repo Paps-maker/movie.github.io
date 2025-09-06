@@ -47,7 +47,6 @@
     "title": "Smurfs",
     "year": 2025,
     "genres": ["Animation, Family, Fantasy"],
-    "type": "movie",
     "poster": "img/17.jpg",
     "fileUrl": "https://vidsrc.xyz/embed/movie/tt18069420",
     "trailer": "https://youtu.be/s18jQqtGsMw",
@@ -196,6 +195,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
