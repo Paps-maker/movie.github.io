@@ -168,7 +168,7 @@ function viewDetails(i) {
   } else { player.innerHTML = "<p>No video available</p>"; }
 
   if(m.episodeIds && m.episodeIds.length>0){
-    m.episodeIds.forEach((ep, idx)=>{
+    m.episodeIds.forEach((ep,idx)=>{
       const btn = document.createElement("button");
       btn.textContent = "Episode "+(idx+1);
       btn.onclick = ()=>{ player.innerHTML = `<video controls src="${ep}"></video>`; };
@@ -182,37 +182,29 @@ function viewDetails(i) {
   document.getElementById("modalDesc").innerText = m.description || "";
   document.getElementById("movieModal").style.display = "flex";
   document.getElementById("modalAddToList").onclick = ()=>addToWatchlistByMovie(m);
+
+  // Push state for back button
+  history.pushState({modalOpen:true}, "", "");
 }
 
-function viewDetailsByMovie(m){
-  const i = movies.findIndex(x => x.title === m.title && x.year === m.year);
-  viewDetails(i);
-}
+function viewDetailsByMovie(m){ viewDetails(movies.findIndex(x=>x.title===m.title && x.year===m.year)); }
 function watchTrailerByMovie(m){ viewDetailsByMovie(m); }
-function addToWatchlistByMovie(m){
-  const i = movies.findIndex(x => x.title === m.title && x.year === m.year);
-  addToWatchlist(i);
-}
+function addToWatchlistByMovie(m){ addToWatchlist(movies.findIndex(x=>x.title===m.title && x.year===m.year)); }
 
 function addToWatchlist(i){
   if(!watchlist.find(m => m.title===movies[i].title)){
-    watchlist.push(movies[i]);
-    saveWatchlist();
-    alert("✅ Added to Watchlist");
+    watchlist.push(movies[i]); saveWatchlist(); alert("✅ Added to Watchlist");
   } else alert("⚠️ Already in Watchlist");
   updateWatchlistButton();
 }
 
 function showWatchlist(){
-  const container = document.getElementById("watchlistContainer");
-  container.innerHTML="";
+  const container = document.getElementById("watchlistContainer"); container.innerHTML="";
   if(!watchlist.length) container.innerHTML="<p>No movies yet.</p>";
   else watchlist.forEach((m,idx)=>{
-    const div = document.createElement("div");
+    const div=document.createElement("div");
     div.className="watchlist-card";
-    div.innerHTML=`<img src="${m.poster}" alt="${m.title}">
-                   <h4>${m.title}</h4><p>${m.year}</p>
-                   <button class="remove-btn" onclick="removeFromWatchlist(${idx})">Remove</button>`;
+    div.innerHTML=`<img src="${m.poster}" alt="${m.title}"><h4>${m.title}</h4><p>${m.year}</p><button class="remove-btn" onclick="removeFromWatchlist(${idx})">Remove</button>`;
     container.appendChild(div);
   });
   document.getElementById("watchlistModal").style.display="flex";
@@ -229,6 +221,12 @@ document.getElementById("search").addEventListener("input", renderMovies);
 document.getElementById("genreFilter").addEventListener("change", renderMovies);
 document.getElementById("yearFilter").addEventListener("change", renderMovies);
 document.getElementById("typeFilter").addEventListener("change", renderMovies);
+
+// Handle browser back button
+window.addEventListener("popstate", (event)=>{
+  const modal = document.getElementById("movieModal");
+  if(modal.style.display==="flex"){ modal.style.display="none"; }
+});
 </script>
 </body>
 </html>
