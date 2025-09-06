@@ -14,8 +14,8 @@
     "year": 2025,
     "genres": ["Action", "Sci-Fi"],
     "poster": "img/02.jpg",
-    "fileUrl": "https://bcdnw.hakunaymatata.com/resource/f303402cfbfdd3ce6369d3380841c091.mp4?sign=cb46bde655ec168bce129bdc7da1dd2c&t=1757096688",
-    "trailer": "https://youtu.be/fsQgc9pCyDU",
+    "fileUrl": "",
+    "trailer": "",
     "description": "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
     "episodeIds": []
   },
@@ -25,7 +25,7 @@
     "genres": ["Action", "Adventure", "Fantasy"],
     "poster": "img/2.jpg",
     "fileUrl": "https://web.wootly.ch/source?id=b26e66234e68d6ee30ca49f29b58f6272461a0c4&sig=utXqm5ptAtw-LE4W2wDqqg&expire=1757109024&ofs=11&usr=194076",
-    "trailer": "https://youtu.be/hUUszE29jS0",
+    "trailer": "",
     "description": "After finding themselves ensnared in a death trap, seven disillusioned castoffs must embark on a dangerous mission that will force them to confront the darkest corners of their pasts.",
     "episodeIds": []
   },
@@ -34,7 +34,7 @@
     "year": 2025,
     "genres": ["Action", "Sci-Fi"],
     "poster": "img/4.jpg",
-    "fileUrl": "https://bcdnw.hakunaymatata.com/resource/29c5427e3d878a32570dde690a306a81.mp4?sign=7546dacc6c0e070e55a104b1482cc3c2&t=1757094467",
+    "fileUrl": "",
     "trailer": "https://youtu.be/OfpXgjP4AOs",
     "description": "Superman, a journalist in Metropolis, embarks on a journey to reconcile his Kryptonian heritage with his human upbringing as Clark Kent.",
     "episodeIds": []
@@ -44,7 +44,7 @@
     "year": 2025,
     "genres": ["Animation, Family, Fantasy"],
     "poster": "img/17.jpg",
-    "fileUrl": "https://bcdnw.hakunaymatata.com/bt/7f67e514e05404a1b901bf3b6383d17d.mp4?sign=a471aee569265de8073b7817c3f103b3&t=1757097005",
+    "fileUrl": "",
     "trailer": "https://youtu.be/s18jQqtGsMw",
     "description": "When Papa Smurf is mysteriously taken by evil wizards, Razamel and Gargamel, Smurfette leads the Smurfs on a mission into the real world to save him. With the help of new friends, the Smurfs must discover what defines their destiny to save the universe.",
     "episodeIds": []
@@ -55,7 +55,7 @@
     "genres": [" Action, Comedy, Crime"],
     "poster": "img/10.jpg",
     "fileUrl": "https://web.wootly.ch/source?id=af6c3210863fbc4e12efccc8a6b2b7d8877828ea&sig=ZvsT2seVdSGSLx7pTiwueA&expire=1757100508&ofs=11&usr=194684",
-    "trailer": "https://youtu.be/YIcga73lPFE",
+    "trailer": "",
     "description": "A routine cash pickup takes a wild turn when mismatched armored truck drivers Russell and Travis are ambushed by ruthless criminals led by savvy mastermind Zoe",
     "episodeIds": []
   },
@@ -64,7 +64,7 @@
     "year": 2025,
     "genres": ["Science Fiction, Adventure, Action "],
     "poster": "img/24.jpg",
-    "fileUrl": "https://bcdnw.hakunaymatata.com/bt/ca883eb5843f83c678e1710aad065ffe.mp4?sign=dffb3b8ed82f33aede50c5e3edf4e59b&t=1757095555",
+    "fileUrl": "",
     "trailer": "https://youtu.be/jan5CFWs9ic",
     "description": "Five years post-Jurassic World: Dominion (2022), an expedition braves isolated equatorial regions to extract DNA from three massive prehistoric creatures for a groundbreaking medical breakthrough.",
     "episodeIds": []
@@ -74,7 +74,7 @@
     "year": 2025,
     "genres": [" Action, Comedy, Crime"],
     "poster": "img/21.jpg",
-    "fileUrl": "https://bcdnw.hakunaymatata.com/tran-audio/20250703/39ab050078179edaa3d38ff45528abfc.mp4?sign=1b0ad2166d30fa8574814be551480825&t=1757097999",
+    "fileUrl": "",
     "trailer": "https://youtu.be/ZgNi6tEuKfI",
     "description": "When a job goes horribly wrong, an ex-cop and family man who moonlights as a mob henchman has one night to get his family out of the city.",
     "episodeIds": []
@@ -190,6 +190,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
