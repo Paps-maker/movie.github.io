@@ -26,7 +26,7 @@ main { padding:20px; }
 .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:1000; overflow-y:auto; }
 .modal-content { background:var(--card-bg); max-width:900px; width:95%; max-height:90vh; overflow-y:auto; border-radius:8px; padding:20px; position:relative; }
 .close { position:absolute; top:10px; right:15px; cursor:pointer; color:var(--accent); font-size:22px; }
-iframe, video { width:100%; height:400px; border-radius:6px; }
+iframe, video { width:100%; height:400px; border-radius:6px; margin-bottom:10px; }
 #watchlistModal h2 { color:var(--accent); margin-bottom:15px; }
 #watchlistModal .movie-list { display:grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:15px; }
 .watchlist-card { background:#111; border-radius:8px; padding:10px; text-align:center; transition:transform 0.2s; }
@@ -129,7 +129,7 @@ function renderMovies(){
         <div class="card-actions">
           <button class="btn" onclick="viewDetailsByFiltered(${index})">Details</button>
           <button class="btn" onclick="addToWatchlistByFiltered(${index})">Add to List</button>
-          ${m.trailer?`<button class="btn" onclick="watchTrailerByFiltered(${index})">Watch</button>`:''}
+          <button class="btn" onclick="watchTrailerByFiltered(${index})">Watch</button>
         </div>
       </div>`;
     grid.appendChild(card);
@@ -154,17 +154,36 @@ function viewDetailsByFiltered(index){
   const episodeList=document.getElementById("episodeList");
   player.innerHTML=""; episodeList.innerHTML="";
 
-  if(m.fileUrl){
-    if(m.fileUrl.includes("vidsrc")||m.fileUrl.includes("wootly.ch")) player.innerHTML=`<iframe src="${m.fileUrl}" frameborder="0" allowfullscreen></iframe>`;
-    else player.innerHTML=`<video controls src="${m.fileUrl}"></video>`;
-  } else if(m.trailer) player.innerHTML=`<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
-  else player.innerHTML="<p>No video available</p>";
+  // Trailer Section
+  if(m.trailer){
+    const trailerDiv=document.createElement("div");
+    trailerDiv.innerHTML=`<h4>Trailer</h4>
+      <iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>`;
+    player.appendChild(trailerDiv);
+  }
 
-  if(m.episodeIds&&m.episodeIds.length>0){
+  // Movie Section
+  if(m.fileUrl){
+    const movieDiv=document.createElement("div");
+    movieDiv.innerHTML=`<h4>Movie</h4>
+      ${m.fileUrl.includes("vidsrc")||m.fileUrl.includes("wootly.ch") 
+        ? `<iframe src="${m.fileUrl}" frameborder="0" allowfullscreen></iframe>` 
+        : `<video controls src="${m.fileUrl}"></video>`}`;
+    player.appendChild(movieDiv);
+  }
+
+  if(!m.trailer && !m.fileUrl) player.innerHTML="<p>No video available</p>";
+
+  // Episodes
+  if(m.episodeIds && m.episodeIds.length>0){
     m.episodeIds.forEach((ep,idx)=>{
       const btn=document.createElement("button");
       btn.textContent="Episode "+(idx+1);
-      btn.onclick=()=>{ player.innerHTML=`<video controls src="${ep}"></video>`; };
+      btn.onclick=()=>{ 
+        const episodeDiv=document.createElement("div");
+        episodeDiv.innerHTML=`<h4>Episode ${idx+1}</h4><video controls src="${ep}"></video>`;
+        player.appendChild(episodeDiv);
+      };
       episodeList.appendChild(btn);
     });
   }
@@ -195,7 +214,8 @@ function showWatchlist(){
   else watchlist.forEach((m,idx)=>{
     const div=document.createElement("div");
     div.className="watchlist-card";
-    div.innerHTML=`<img src="${m.poster}" alt="${m.title}"><h4>${m.title}</h4><p>${m.year}</p><button class="remove-btn" onclick="removeFromWatchlist(${idx})">Remove</button>`;
+    div.innerHTML=`<img src="${m.poster}" alt="${m.title}"><h4>${m.title}</h4><p>${m.year}</p>
+      <button class="remove-btn" onclick="removeFromWatchlist(${idx})">Remove</button>`;
     container.appendChild(div);
   });
   document.getElementById("watchlistModal").style.display="flex";
