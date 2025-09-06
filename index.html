@@ -88,7 +88,6 @@ async function loadMovies() {
 }
 loadMovies();
 
-// Populate genre/year dropdowns dynamically
 function populateFilters() {
   const genreSet = new Set();
   const yearSet = new Set();
@@ -114,7 +113,6 @@ function populateFilters() {
   });
 }
 
-// Render movies with filters and search
 function renderMovies() {
   const grid = document.getElementById("grid");
   const searchText = document.getElementById("search").value.toLowerCase();
@@ -146,7 +144,6 @@ function renderMovies() {
   });
 }
 
-// Convert YouTube URL to embed link
 function convertYouTubeLink(url) {
   try {
     let videoId = '';
@@ -164,15 +161,27 @@ function viewDetails(i) {
   player.innerHTML = "";
   episodeList.innerHTML = "";
 
-  if (m.fileUrl) player.innerHTML = `<video controls src="${m.fileUrl}"></video>`;
-  else if (m.trailer) player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-  else player.innerHTML = "<p>No video available</p>";
+  if (m.fileUrl) {
+    // Use iframe for VidSrc links, video for direct files
+    if (m.fileUrl.includes("vidsrc.xyz")) {
+      player.innerHTML = `<iframe src="${m.fileUrl}" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    } else {
+      player.innerHTML = `<video controls src="${m.fileUrl}"></video>`;
+    }
+  } else if (m.trailer) {
+    player.innerHTML = `<iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  } else {
+    player.innerHTML = "<p>No video available</p>";
+  }
 
   if (m.episodeIds && m.episodeIds.length>0) {
     m.episodeIds.forEach((ep, idx)=>{
       const btn = document.createElement("button");
       btn.textContent = "Episode "+(idx+1);
-      btn.onclick = ()=>{ player.innerHTML = `<video controls src="${ep}"></video>`; };
+      btn.onclick = ()=>{ 
+        if(ep.includes("vidsrc.xyz")) player.innerHTML = `<iframe src="${ep}" frameborder="0" allowfullscreen></iframe>`;
+        else player.innerHTML = `<video controls src="${ep}"></video>`;
+      };
       episodeList.appendChild(btn);
     });
   }
@@ -218,7 +227,6 @@ updateWatchlistButton();
 document.getElementById("watchlistToggle").onclick = showWatchlist;
 function closeModal(id){ document.getElementById(id).style.display="none"; }
 
-// Filters + search
 document.getElementById("search").addEventListener("input", renderMovies);
 document.getElementById("genreFilter").addEventListener("change", renderMovies);
 document.getElementById("yearFilter").addEventListener("change", renderMovies);
