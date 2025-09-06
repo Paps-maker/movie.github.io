@@ -24,7 +24,7 @@
     "year": 2025,
     "genres": ["Action", "Adventure", "Fantasy"],
     "poster": "img/2.jpg",
-    "fileUrl": "",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt20969586",
     "trailer": "https://youtu.be/hUUszE29jS0",
     "description": "After finding themselves ensnared in a death trap, seven disillusioned castoffs must embark on a dangerous mission that will force them to confront the darkest corners of their pasts.",
     "episodeIds": []
@@ -190,6 +190,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
