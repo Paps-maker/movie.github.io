@@ -1,5 +1,72 @@
 [
   {
+    "title": "Happy Gilmore 2",
+    "year": 2025,
+    "genres": ["Comedy"],
+    "type": "Movie",
+    "poster": "img/30.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt31868189",
+    "trailer": "https://youtu.be/YKzRPFvky9Y",
+    "description": "Revisit Happy Gilmore's golf career after his win in the Tour Championship.",
+    "episodeIds": []
+  },
+    {
+    "title": "In the lost Lands",
+    "year": 2025,
+    "genres": ["Action","Black Magic"],
+    "type": "Movie",
+    "poster": "img/29.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt4419684",
+    "trailer": "https://youtu.be/CMyrp5Vk3mU",
+    "description": "A queen sends the powerful and feared sorceress Gray Alys to the ghostly wilderness of the Lost Lands in search of a magical power, where the sorceress and her guide, the drifter Boyce, must outwit and outfight man and demon.",
+    "episodeIds": []
+  },
+  {
+    "title": "Together",
+    "year": 2025,
+    "genres": ["Romance", "Horror", "Drama"],
+    "type": "Movie",
+    "poster": "img/28.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt31184028",
+    "trailer": "https://youtu.be/aSR8mOPBa0I",
+    "description": " Years into their relationship, Tim and Millie find themselves at a crossroads as they move to the country. With tensions already flaring, an encounter with an unnatural force threatens to corrupt their lives, their love and their flesh.",
+    "episodeIds": []
+  },
+  {
+    "title": "The Roses",
+    "year": 2025,
+    "genres": ["Dark comedy", "Tragedy", "Drama"],
+    "type": "Movie",
+    "poster": "img/27.jpg",
+    "fileUrl": "",
+    "trailer": "https://youtu.be/XkgMaS5gbaA",
+    "description": " A tinderbox of competition and resentments underneath the façade of a picture-perfect couple is ignited when the husband's professional dreams come crashing down.",
+    "episodeIds": []
+  },
+
+  {
+    "title": "F1: The Movie",
+    "year": 2025,
+    "genres": [" Car Action", "Action", "Drama"],
+    "type": "Movie",
+    "poster": "img/26.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt16311594",
+    "trailer": "https://youtu.be/69ffwl-8pCU",
+    "description": " ",
+    "episodeIds": []
+  },
+  {
+    "title": "Caught Stealing",
+    "year": 2025,
+    "genres": ["Action", "Comedy", "Thriller"],
+    "type": "Movie",
+    "poster": "img/25.jpg",
+    "fileUrl": "",
+    "trailer": "https://youtu.be/6mIvD-GN-p4",
+    "description": " Burned-out ex-baseball player Hank Thompson unexpectedly finds himself embroiled in a dangerous struggle for survival amidst the criminal underbelly of 1990s New York City, forced to navigate a treacherous underworld he never imagined.",
+    "episodeIds": []
+  },
+  {
     "title": "Nobody ",
     "year": 2025,
     "genres": ["Action", "Comedy", "Thriller"],
@@ -209,6 +276,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
