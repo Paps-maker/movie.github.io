@@ -123,7 +123,7 @@ function renderMovies() {
     return matchesSearch && matchesGenre && matchesYear && matchesType;
   });
 
-  filtered.forEach((m) => {
+  filtered.forEach((m, index) => {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
@@ -132,9 +132,9 @@ function renderMovies() {
         <h3 class="movie-title">${m.title}</h3>
         <div class="meta">${m.year} · ${m.genres.join(", ")}</div>
         <div class="card-actions">
-          <button class="btn" onclick='viewDetailsByMovie(${JSON.stringify(m)})'>Details</button>
-          <button class="btn" onclick='addToWatchlistByMovie(${JSON.stringify(m)})'>Add to List</button>
-          ${m.trailer ? `<button class="btn" onclick='watchTrailerByMovie(${JSON.stringify(m)})'>Watch</button>` : ''}
+          <button class="btn" onclick="viewDetails(${index})">Details</button>
+          <button class="btn" onclick="addToWatchlist(${index})">Add to List</button>
+          ${m.trailer ? `<button class="btn" onclick="watchTrailer(${index})">Watch</button>` : ''}
         </div>
       </div>`;
     grid.appendChild(card);
@@ -151,7 +151,7 @@ function convertYouTubeLink(url) {
   } catch { return url; }
 }
 
-function viewDetails(i) {
+function viewDetails(i){
   const m = movies[i];
   const player = document.getElementById("modalPlayer");
   const episodeList = document.getElementById("episodeList");
@@ -181,15 +181,13 @@ function viewDetails(i) {
   document.getElementById("modalGenres").innerText = "Genres: "+m.genres.join(", ");
   document.getElementById("modalDesc").innerText = m.description || "";
   document.getElementById("movieModal").style.display = "flex";
-  document.getElementById("modalAddToList").onclick = ()=>addToWatchlistByMovie(m);
+  document.getElementById("modalAddToList").onclick = ()=>addToWatchlist(i);
 
   // Push state for back button
   history.pushState({modalOpen:true}, "", "");
 }
 
-function viewDetailsByMovie(m){ viewDetails(movies.findIndex(x=>x.title===m.title && x.year===m.year)); }
-function watchTrailerByMovie(m){ viewDetailsByMovie(m); }
-function addToWatchlistByMovie(m){ addToWatchlist(movies.findIndex(x=>x.title===m.title && x.year===m.year)); }
+function watchTrailer(i){ viewDetails(i); }
 
 function addToWatchlist(i){
   if(!watchlist.find(m => m.title===movies[i].title)){
@@ -217,6 +215,7 @@ updateWatchlistButton();
 document.getElementById("watchlistToggle").onclick=showWatchlist;
 function closeModal(id){ document.getElementById(id).style.display="none"; }
 
+// Filters + search
 document.getElementById("search").addEventListener("input", renderMovies);
 document.getElementById("genreFilter").addEventListener("change", renderMovies);
 document.getElementById("yearFilter").addEventListener("change", renderMovies);
