@@ -1,4 +1,15 @@
 [
+   {
+    "title": "Red Sonja",
+    "year": 2025,
+    "genres": ["Superhero","Thriller","Adventure","Action"],
+    "type": "Movie",
+    "poster": "img/31.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt0800175",
+    "trailer": "https://youtu.be/xfSxZrt3ggw",
+    "description": "An adaptation of the comic book, Red Sonja, a vengeful warrior known as a She-Devil with a sword.",
+    "episodeIds": []
+  },
   {
     "title": "Happy Gilmore 2",
     "year": 2025,
@@ -276,6 +287,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
