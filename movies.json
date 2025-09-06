@@ -62,7 +62,7 @@
     "type": "Movie",
     "poster": "img/26.jpg",
     "fileUrl": "https://vidsrc.xyz/embed/movie/tt16311594",
-    "trailer": "https://youtu.be/69ffwl-8pCU",
+    "trailer": "",
     "description": " ",
     "episodeIds": []
   },
@@ -287,6 +287,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
