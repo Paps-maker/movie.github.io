@@ -3,7 +3,7 @@
     "title": "Nobody ",
     "year": 2025,
     "genres": ["Action", "Comedy", "Thriller"],
-    "type": "movie",
+    "type": "Movie",
     "poster": "img/1.jpg",
     "fileUrl": "https://vidsrc.xyz/embed/movie/tt28996126",
     "trailer": "https://youtu.be/-5X2pt95cIo",
@@ -14,7 +14,7 @@
     "title": "Mission: Impossible - The Final Reckoning",
     "year": 2025,
     "genres": ["Action", "Sci-Fi"],
-    "type": "movie",
+    "type": "Movie",
     "poster": "img/02.jpg",
     "fileUrl": "https://vidsrc.xyz/embed/movie/tt9603208",
     "trailer": "",
@@ -25,7 +25,7 @@
     "title": "Thunderbolts*",
     "year": 2025,
     "genres": ["Action", "Adventure", "Fantasy"],
-    "type": "Movies",
+    "type": "Movie",
     "poster": "img/2.jpg",
     "fileUrl": "https://vidsrc.xyz/embed/movie/tt20969586",
     "trailer": "https://youtu.be/hUUszE29jS0",
@@ -195,6 +195,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
