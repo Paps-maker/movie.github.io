@@ -3,7 +3,7 @@
     "title": "Nobody ",
     "year": 2025,
     "genres": ["Action", "Comedy", "Thriller"],
-    "type": "Movies",
+    "type": "movie",
     "poster": "img/1.jpg",
     "fileUrl": "https://vidsrc.xyz/embed/movie/tt28996126",
     "trailer": "https://youtu.be/-5X2pt95cIo",
@@ -196,6 +196,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
