@@ -1,4 +1,15 @@
 [
+      {
+    "title": "Peace Maker S1,S2",
+    "year": 2025,
+    "genres": ["Superpower","Comedy","Thriller","Adventure","Action"],
+    "type": "Series",
+    "poster": "img/33.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/tv/tt13146488",
+    "trailer": "https://youtu.be/Co-f2F4P_UE",
+    "description": "Picking up where The Suicide Squad (2021) left off, Peacemaker returns home after recovering from his encounter with Bloodsport - only to discover that his freedom comes at a price.",
+    "episodeIds": []
+  },
      {
     "title": "Wednesday S1,S2",
     "year": 2025,
@@ -298,4 +309,5 @@
     "episodeIds": []
   }
 ]
+
 
