@@ -1,4 +1,15 @@
 [
+     {
+    "title": "Wednesday S1,S2",
+    "year": 2025,
+    "genres": ["Supernatural","Thriller","Adventure","Action"],
+    "type": "Series",
+    "poster": "img/8.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/tv/tt13443470",
+    "trailer": "https://youtu.be/x--N03NO130",
+    "description": "Follows Wednesday Addams' years as a student, when she attempts to master her emerging psychic ability, thwart a killing spree, and solve the mystery that embroiled her parents.",
+    "episodeIds": []
+  },
    {
     "title": "Red Sonja",
     "year": 2025,
@@ -298,4 +309,5 @@
     "episodeIds": []
   }
 ]
+
 
