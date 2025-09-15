@@ -1,4 +1,37 @@
 [
+       {
+    "title": "The Wrong Paris",
+    "year": 2025,
+    "genres": ["Comedy","Romance"],
+    "type": "Movie",
+    "poster": "img/38.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt33039440",
+    "trailer": "https://youtu.be/SgKpEeduwh0",
+    "description": "Dawn thinks she's joining a dating show in Paris, France, only to land in Paris, Texas. She has an exit plan — until sparks fly with the cowboy bachelor..",
+    "episodeIds": []
+  },
+   {
+    "title": "The Divorce Lawyer",
+    "year": 2025,
+    "genres": ["Thriller"],
+    "type": "Movie",
+    "poster": "img/37.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt33376869",
+    "trailer": "https://youtu.be/bweiral1C7U",
+    "description": "When emotionally abandoned wife Zahra Jones seeks the help of divorce attorney Joshua Wright, she becomes the target of a twisted obsession, forcing her and her husband Mark to survive against a man determined to ruin her life.",
+    "episodeIds": []
+  },
+  {
+    "title": "Under fire",
+    "year": 2025,
+    "genres": ["Comedy","Action"],
+    "type": "Movie",
+    "poster": "img/36.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt32212611",
+    "trailer": "https://youtu.be/5Hn5_B-Hq0Q",
+    "description": "At a Mexican border drug deal, dealers Griff and Abbott meet for an exchange. Both unexpectedly flash badges - Griff's FBI, Abbott's DEA - revealing they're unknowingly working the same case.",
+    "episodeIds": []
+  },
       {
     "title": "Weapons ",
     "year": 2025,
@@ -331,6 +364,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
