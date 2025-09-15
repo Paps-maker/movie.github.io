@@ -1,5 +1,16 @@
 [
        {
+    "title": "The Thursday Murder Club",
+    "year": 2025,
+    "genres": ["Comedy","Thriller","Mystery"],
+    "type": "Movie",
+    "poster": "img/39.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt12001534",
+    "trailer": "https://youtu.be/50DYgzRBhFA",
+    "description": "Four irrepressible retirees spend their time solving cold case murders for fun, but their casual sleuthing takes a thrilling turn when they find themselves with a real whodunit on their hands.",
+    "episodeIds": []
+  },
+       {
     "title": "The Wrong Paris",
     "year": 2025,
     "genres": ["Comedy","Romance"],
@@ -364,6 +375,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
