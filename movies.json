@@ -1,4 +1,15 @@
 [
+        {
+    "title": "Freakier Friday",
+    "year": 2025,
+    "genres": ["Comedy","Thriller","Mystery"],
+    "type": "Movie",
+    "poster": "img/40.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt31956415",
+    "trailer": "https://youtu.be/RW84gqd0uTc",
+    "description": "22 years after Tess and Anna endured an identity crisis, Anna now has a daughter and a soon-to-be stepdaughter. As they navigate the challenges that come when two families merge, Tess and Anna discover that lightning might strike twice.",
+    "episodeIds": []
+  },
        {
     "title": "The Thursday Murder Club",
     "year": 2025,
@@ -375,6 +386,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
