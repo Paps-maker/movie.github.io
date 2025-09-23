@@ -1,4 +1,15 @@
 [
+         {
+    "title": "The Fantastic 4: First Steps",
+    "year": 2025,
+    "genres": ["Science Fiction, Adventure, Action ","Thriller","Mystery"],
+    "type": "Movie",
+    "poster": "img/41.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt10676052",
+    "trailer": "https://youtu.be/18QQWa5MEcs",
+    "description": "Forced to balance their roles as heroes with the strength of their family bond, the Fantastic Four must defend Earth from a ravenous space god called Galactus and his enigmatic herald, the Silver Surfer.",
+    "episodeIds": []
+  },
         {
     "title": "Freakier Friday",
     "year": 2025,
@@ -386,6 +397,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
