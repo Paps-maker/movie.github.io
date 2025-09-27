@@ -1,5 +1,16 @@
 [
          {
+    "title": "Afterburn",
+    "year": 2025,
+    "genres": ["Science Fiction, Adventure, Action ","Thriller","Mystery"],
+    "type": "Movie",
+    "poster": "img/42.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt1210027",
+    "trailer": "https://youtu.be/-44nQPX34D0",
+    "description": "After a massive solar flare destroys the Earth's eastern hemisphere, an emboldened treasure hunter for hire adventures to Europe to uncover the coveted Mona Lisa, only to learn the world needs a hero more than it needs a painting.",
+    "episodeIds": []
+  },
+         {
     "title": "The Fantastic 4: First Steps",
     "year": 2025,
     "genres": ["Science Fiction, Adventure, Action ","Thriller","Mystery"],
@@ -397,6 +408,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
