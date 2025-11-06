@@ -1,4 +1,15 @@
 [
+           {
+    "title": "Black Phone 2",
+    "year": 2025,
+    "genres": ["Science Fiction, Adventure, Action ","Thriller","Mystery"],
+    "type": "Movie",
+    "poster": "img/43.jpg",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt29644189",
+    "trailer": "https://youtu.be/DdR-gzFZoDk",
+    "description": "As Finn, now 17, struggles with life after his captivity, his sister begins receiving calls in her dreams from the black phone and seeing disturbing visions of three boys being stalked at a winter camp known as Alpine Lake..",
+    "episodeIds": []
+  },
          {
     "title": "Afterburn",
     "year": 2025,
@@ -408,6 +419,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
