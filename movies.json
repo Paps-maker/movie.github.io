@@ -181,7 +181,7 @@
     "genres": ["Dark comedy", "Tragedy", "Drama"],
     "type": "Movie",
     "poster": "img/27.jpg",
-    "fileUrl": "",
+    "fileUrl": "https://vidsrc.xyz/embed/movie/tt31973693",
     "trailer": "https://youtu.be/XkgMaS5gbaA",
     "description": " A tinderbox of competition and resentments underneath the façade of a picture-perfect couple is ignited when the husband's professional dreams come crashing down.",
     "episodeIds": []
@@ -419,6 +419,7 @@
     "episodeIds": []
   }
 ]
+
 
 
 
