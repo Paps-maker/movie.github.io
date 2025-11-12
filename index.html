@@ -98,7 +98,7 @@ let watchlist = JSON.parse(localStorage.getItem("watchlist")) || [];
 const genreFilter = document.getElementById("genreFilter");
 const yearFilter = document.getElementById("yearFilter");
 
-// ---------------- LOAD MOVIES REALTIME (NEWEST FIRST) ----------------
+// ---------------- LOAD MOVIES REALTIME (NEWEST YEAR FIRST) ----------------
 onSnapshot(collection(db, "movies"), snapshot => {
   movies = snapshot.docs
     .map(d => {
@@ -106,13 +106,19 @@ onSnapshot(collection(db, "movies"), snapshot => {
       const createdAt = data.createdAt?.seconds
         ? data.createdAt.seconds * 1000
         : data.createdAt || 0;
-      return { id: d.id, ...data, createdAt };
+      const year = parseInt(data.year) || 0;
+      return { id: d.id, ...data, createdAt, year };
     })
-    .sort((a, b) => b.createdAt - a.createdAt); // newest first
+    .sort((a, b) => {
+      // Sort by year first (descending), then by upload date (descending)
+      if (b.year !== a.year) return b.year - a.year;
+      return b.createdAt - a.createdAt;
+    });
 
   populateFilters();
   renderMovies();
 });
+
 
 // ---------------- FILTER OPTIONS ----------------
 function populateFilters() {
@@ -261,3 +267,4 @@ updateWatchlistButton();
 
 </body>
 </html>
+
