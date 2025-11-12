@@ -93,34 +93,79 @@ const TMDB_API_KEY = "4d2474df29f79bf9c784634d44137413";
 
 let allMovies = [];
 
-// -------------------- FETCH TMDb MOVIES --------------------
-async function fetchTMDbMovies() {
+// -------------------- FETCH FROM TMDb (Movies, Series, Anime, Animation) --------------------
+async function fetchAllTMDbContent() {
+  const PAGES = 2; // Number of pages to fetch for each category (adjust as needed)
+  const endpoints = [
+    { type: "Movie", label: "Now Playing", baseUrl: "https://api.themoviedb.org/3/movie/now_playing" },
+    { type: "Movie", label: "Popular", baseUrl: "https://api.themoviedb.org/3/movie/popular" },
+    { type: "Movie", label: "Latest", baseUrl: "https://api.themoviedb.org/3/movie/latest" },
+    { type: "Series", label: "Popular", baseUrl: "https://api.themoviedb.org/3/tv/popular" },
+    { type: "Series", label: "Latest", baseUrl: "https://api.themoviedb.org/3/tv/latest" },
+    { type: "Anime", label: "Popular", baseUrl: "https://api.themoviedb.org/3/discover/tv?with_original_language=ja&sort_by=popularity.desc" },
+    { type: "Animation", label: "Popular", baseUrl: "https://api.themoviedb.org/3/discover/movie?with_genres=16&sort_by=popularity.desc" },
+    { type: "Animation", label: "Latest", baseUrl: "https://api.themoviedb.org/3/movie/latest?with_genres=16" }
+  ];
+
   try {
-    const res = await fetch(`https://api.themoviedb.org/3/movie/now_playing?api_key=${TMDB_API_KEY}&language=en-US&page=1`);
-    const data = await res.json();
-    for (let m of data.results) {
-      const q = query(moviesRef, where("title", "==", m.title));
-      const existing = await getDocs(q);
-      if (existing.empty) {
-        await addDoc(moviesRef, {
-          title: m.title,
-          year: new Date(m.release_date).getFullYear(),
-          type: "Movie",
-          genres: [],
-          poster: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : "",
-          trailer: "",
-          fileUrl: "",
-          description: m.overview,
-          rating: m.vote_average,
-          createdAt: Date.now()
-        });
+    for (const endpoint of endpoints) {
+      console.log(`🔄 Fetching ${endpoint.label} ${endpoint.type}s...`);
+
+      for (let page = 1; page <= PAGES; page++) {
+        // Construct final API URL (some endpoints don’t accept page parameter)
+        const url = endpoint.baseUrl.includes("?")
+          ? `${endpoint.baseUrl}&api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
+          : `${endpoint.baseUrl}?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        // Handle endpoints that return a single object (like /latest)
+        const results = Array.isArray(data.results) ? data.results : [data];
+
+        for (const item of results) {
+          if (!item || !item.title && !item.name) continue;
+
+          const title = item.title || item.name;
+          const releaseDate = item.release_date || item.first_air_date || "";
+          const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
+
+          // Prevent duplicates
+          const q = query(moviesRef, where("title", "==", title));
+          const existing = await getDocs(q);
+          if (!existing.empty) continue;
+
+          // Save to Firestore
+          await addDoc(moviesRef, {
+            title,
+            year,
+            type: endpoint.type,
+            genres: [],
+            poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "",
+            trailer: "",
+            fileUrl: "",
+            description: item.overview || "",
+            rating: item.vote_average || null,
+            source: "tmdb",
+            category: endpoint.label,
+            createdAt: Date.now()
+          });
+        }
       }
+
+      console.log(`✅ ${endpoint.label} ${endpoint.type}s fetched successfully!`);
     }
-  } catch(e){ console.error("TMDb fetch error:", e); }
+
+    alert("🎉 All movies, series, anime, and animations fetched and saved!");
+  } catch (e) {
+    console.error("TMDb fetch error:", e);
+    alert("⚠️ TMDb fetch failed. Check console for details.");
+  }
 }
 
-// Fetch TMDb movies on admin load
-fetchTMDbMovies();
+// Fetch all content on admin load
+fetchAllTMDbContent();
+
 
 // -------------------- RENDER MOVIES --------------------
 function renderMovies(list) {
