@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MovieDrift Admin</title>
+<link rel="icon" href="img/logo.png" type="image/png">
+<style>
+:root { --bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#eee; --muted:#777; }
+body { background:var(--bg); color:var(--text); font-family:Arial,sans-serif; margin:0; }
+header { background:#111; color:var(--accent); padding:15px 20px; font-size:24px; font-weight:bold; }
+main { padding:20px; display:grid; grid-template-columns:300px 1fr; gap:20px; flex-wrap:wrap; }
+form { background:var(--card-bg); padding:15px; border-radius:8px; display:flex; flex-direction:column; gap:10px; }
+input, textarea, select, button { padding:8px; border:1px solid var(--accent); border-radius:5px; background:#111; color:var(--text); }
+button { background:var(--accent); color:#000; font-weight:bold; cursor:pointer; }
+button:hover { opacity:0.85; }
+table { width:100%; border-collapse:collapse; background:var(--card-bg); border-radius:8px; overflow:hidden; }
+th, td { border-bottom:1px solid #222; padding:8px; text-align:left; }
+th { color:var(--accent); background:#111; }
+tr:hover { background:#181818; }
+.actions button { margin-right:6px; padding:4px 8px; border:none; border-radius:4px; cursor:pointer; font-size:0.8rem; }
+.actions .edit { background:#00cc88; color:#000; }
+.actions .delete { background:#e63946; color:#fff; }
+.search-bar { margin-bottom:10px; width:100%; }
+@media(max-width:900px){ main { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>🎬 MovieDrift Admin Dashboard</header>
+
+<main>
+  <!-- ADD / EDIT MOVIE FORM -->
+  <form id="movieForm">
+    <h3>Add / Edit Movie</h3>
+    <input type="hidden" id="movieId">
+    <input id="title" placeholder="Title" required>
+    <input id="year" placeholder="Year" required>
+    <input id="type" placeholder="Type (Movie, Series, Animation)" required>
+    <input id="genres" placeholder="Genres (comma separated)" required>
+    <input id="poster" placeholder="Poster URL" required>
+    <input id="trailer" placeholder="Trailer URL">
+    <input id="fileUrl" placeholder="Movie / Stream URL">
+    <textarea id="description" placeholder="Description"></textarea>
+    <input id="rating" type="number" placeholder="Rating (0-10)" min="0" max="10" step="0.1">
+    <button type="submit">Save Movie</button>
+  </form>
+
+  <!-- MOVIES TABLE -->
+  <div>
+    <h3>🎞 All Movies</h3>
+    <input id="searchInput" class="search-bar" placeholder="🔍 Search movies by title...">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Year</th>
+          <th>Type</th>
+          <th>Genres</th>
+          <th>Rating</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="movieTable"></tbody>
+    </table>
+  </div>
+</main>
+
+<script type="module"> 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { 
+  getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, where, orderBy
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+// -------------------- Firebase Config --------------------
+const firebaseConfig = {
+  apiKey: "AIzaSyD2gkLs17Oa_dxIGu1FpOaDKAvGZwj_EFA",
+  authDomain: "gamers-65b44.firebaseapp.com",
+  projectId: "gamers-65b44",
+  storageBucket: "gamers-65b44.firebasestorage.app",
+  messagingSenderId: "97331968745",
+  appId: "1:97331968745:web:a93ff0bd2c383800dcce78",
+  measurementId: "G-JPPCZ3M4G2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const moviesRef = collection(db, "movies");
+
+const movieForm = document.getElementById("movieForm");
+const movieTable = document.getElementById("movieTable");
+const searchInput = document.getElementById("searchInput");
+const TMDB_API_KEY = "4d2474df29f79bf9c784634d44137413";
+
+let allMovies = [];
+
+// -------------------- FETCH TMDb MOVIES --------------------
+async function fetchTMDbMovies() {
+  try {
+    const res = await fetch(`https://api.themoviedb.org/3/movie/now_playing?api_key=${TMDB_API_KEY}&language=en-US&page=1`);
+    const data = await res.json();
+    for (let m of data.results) {
+      const q = query(moviesRef, where("title", "==", m.title));
+      const existing = await getDocs(q);
+      if (existing.empty) {
+        await addDoc(moviesRef, {
+          title: m.title,
+          year: new Date(m.release_date).getFullYear(),
+          type: "Movie",
+          genres: [],
+          poster: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : "",
+          trailer: "",
+          fileUrl: "",
+          description: m.overview,
+          rating: m.vote_average,
+          createdAt: Date.now()
+        });
+      }
+    }
+  } catch(e){ console.error("TMDb fetch error:", e); }
+}
+
+// Fetch TMDb movies on admin load
+fetchTMDbMovies();
+
+// -------------------- RENDER MOVIES --------------------
+function renderMovies(list) {
+  movieTable.innerHTML = "";
+  list.forEach(docSnap => {
+    const m = docSnap.data ? docSnap.data() : docSnap; 
+    const ratingDisplay = m.rating ? `${m.rating} (${(m.rating*10).toFixed(0)}%)` : "-";
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${m.title}</td>
+      <td>${m.year}</td>
+      <td>${m.type}</td>
+      <td>${m.genres ? m.genres.join(", ") : ""}</td>
+      <td>${ratingDisplay}</td>
+      <td class="actions">
+        <button class="edit" onclick='editMovie("${docSnap.id}")'>Edit</button>
+        <button class="delete" onclick='deleteMovie("${docSnap.id}")'>Delete</button>
+      </td>`;
+    movieTable.appendChild(row);
+  });
+}
+
+// -------------------- LOAD MOVIES REALTIME --------------------
+onSnapshot(query(moviesRef, orderBy("createdAt", "desc")), snapshot => {
+  allMovies = [];
+  snapshot.forEach(docSnap => allMovies.push({ id: docSnap.id, ...docSnap.data() }));
+  renderMovies(allMovies);
+});
+
+// -------------------- SEARCH FILTER --------------------
+searchInput.addEventListener("input", e => {
+  const term = e.target.value.toLowerCase();
+  const filtered = allMovies.filter(m => m.title.toLowerCase().includes(term));
+  renderMovies(filtered);
+});
+
+// -------------------- ADD / UPDATE MOVIE --------------------
+movieForm.addEventListener("submit", async e => {
+  e.preventDefault();
+  const movieData = {
+    title: title.value.trim(),
+    year: year.value.trim(),
+    type: type.value.trim(),
+    genres: genres.value.split(",").map(g => g.trim()),
+    poster: poster.value.trim(),
+    trailer: trailer.value.trim(),
+    fileUrl: fileUrl.value.trim(),
+    description: description.value.trim(),
+    rating: parseFloat(rating.value) || null
+  };
+
+  const id = movieId.value;
+  if (id) {
+    await updateDoc(doc(db, "movies", id), movieData);
+    alert("✅ Movie updated!");
+  } else {
+    const q = query(moviesRef, where("title", "==", movieData.title));
+    const existing = await getDocs(q);
+    if (!existing.empty) {
+      alert("⚠️ Movie already exists. Edit it instead of adding.");
+      return;
+    }
+    movieData.createdAt = Date.now();
+    await addDoc(moviesRef, movieData);
+    alert("✅ Movie added!");
+  }
+
+  movieForm.reset();
+  movieId.value = "";
+});
+
+// -------------------- EDIT MOVIE --------------------
+window.editMovie = async id => {
+  const docs = await getDocs(moviesRef);
+  const movieDoc = docs.docs.find(d => d.id === id);
+  if (!movieDoc) return alert("Movie not found!");
+
+  const m = movieDoc.data();
+  movieId.value = id;
+  title.value = m.title;
+  year.value = m.year;
+  type.value = m.type;
+  genres.value = m.genres ? m.genres.join(", ") : "";
+  poster.value = m.poster;
+  trailer.value = m.trailer || "";
+  fileUrl.value = m.fileUrl || "";
+  description.value = m.description || "";
+  rating.value = m.rating || "";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+// -------------------- DELETE MOVIE --------------------
+window.deleteMovie = async id => {
+  if (confirm("Delete this movie?")) {
+    await deleteDoc(doc(db, "movies", id));
+    alert("🗑 Movie deleted");
+  }
+};
+</script>
+</body>
+</html>
