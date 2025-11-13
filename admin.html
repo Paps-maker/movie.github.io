@@ -49,9 +49,13 @@ tr:hover { background:#181818; }
   <div>
     <h3>🎞 All Movies</h3>
     <input id="searchInput" class="search-bar" placeholder="🔍 Search movies by title...">
+    <div style="margin-bottom:10px;">
+      <button id="deleteSelectedBtn" onclick="deleteSelectedMovies()" disabled>🗑 Delete Selected</button>
+    </div>
     <table>
       <thead>
         <tr>
+          <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
           <th>Title</th>
           <th>Year</th>
           <th>Type</th>
@@ -89,53 +93,43 @@ const moviesRef = collection(db, "movies");
 const movieForm = document.getElementById("movieForm");
 const movieTable = document.getElementById("movieTable");
 const searchInput = document.getElementById("searchInput");
+const deleteSelectedBtn = document.getElementById("deleteSelectedBtn");
 const TMDB_API_KEY = "4d2474df29f79bf9c784634d44137413";
 
 let allMovies = [];
+let selectedMovies = new Set(); // Track multi-selection
 
-// -------------------- FETCH FROM TMDb (Movies, Series, Anime, Animation) --------------------
+// -------------------- FETCH FROM TMDb --------------------
 async function fetchAllTMDbContent() {
-  const PAGES = 2; // Number of pages to fetch for each category (adjust as needed)
+  const PAGES = 2;
   const endpoints = [
     { type: "Movie", label: "Now Playing", baseUrl: "https://api.themoviedb.org/3/movie/now_playing" },
     { type: "Movie", label: "Popular", baseUrl: "https://api.themoviedb.org/3/movie/popular" },
-    { type: "Movie", label: "Latest", baseUrl: "https://api.themoviedb.org/3/movie/latest" },
     { type: "Series", label: "Popular", baseUrl: "https://api.themoviedb.org/3/tv/popular" },
-    { type: "Series", label: "Latest", baseUrl: "https://api.themoviedb.org/3/tv/latest" },
     { type: "Anime", label: "Popular", baseUrl: "https://api.themoviedb.org/3/discover/tv?with_original_language=ja&sort_by=popularity.desc" },
-    { type: "Animation", label: "Popular", baseUrl: "https://api.themoviedb.org/3/discover/movie?with_genres=16&sort_by=popularity.desc" },
-    { type: "Animation", label: "Latest", baseUrl: "https://api.themoviedb.org/3/movie/latest?with_genres=16" }
+    { type: "Animation", label: "Popular", baseUrl: "https://api.themoviedb.org/3/discover/movie?with_genres=16&sort_by=popularity.desc" }
   ];
 
   try {
     for (const endpoint of endpoints) {
       console.log(`🔄 Fetching ${endpoint.label} ${endpoint.type}s...`);
-
       for (let page = 1; page <= PAGES; page++) {
-        // Construct final API URL (some endpoints don’t accept page parameter)
         const url = endpoint.baseUrl.includes("?")
           ? `${endpoint.baseUrl}&api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
           : `${endpoint.baseUrl}?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`;
-
         const res = await fetch(url);
         const data = await res.json();
-
-        // Handle endpoints that return a single object (like /latest)
         const results = Array.isArray(data.results) ? data.results : [data];
-
         for (const item of results) {
-          if (!item || !item.title && !item.name) continue;
-
+          if (!item || (!item.title && !item.name)) continue;
           const title = item.title || item.name;
           const releaseDate = item.release_date || item.first_air_date || "";
           const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
 
-          // Prevent duplicates
           const q = query(moviesRef, where("title", "==", title));
           const existing = await getDocs(q);
           if (!existing.empty) continue;
 
-          // Save to Firestore
           await addDoc(moviesRef, {
             title,
             year,
@@ -152,41 +146,78 @@ async function fetchAllTMDbContent() {
           });
         }
       }
-
       console.log(`✅ ${endpoint.label} ${endpoint.type}s fetched successfully!`);
     }
-
     alert("🎉 All movies, series, anime, and animations fetched and saved!");
   } catch (e) {
     console.error("TMDb fetch error:", e);
     alert("⚠️ TMDb fetch failed. Check console for details.");
   }
 }
-
-// Fetch all content on admin load
 fetchAllTMDbContent();
-
 
 // -------------------- RENDER MOVIES --------------------
 function renderMovies(list) {
   movieTable.innerHTML = "";
-  list.forEach(docSnap => {
-    const m = docSnap.data ? docSnap.data() : docSnap; 
+  list.forEach(m => {
+    const checked = selectedMovies.has(m.id) ? "checked" : "";
     const ratingDisplay = m.rating ? `${m.rating} (${(m.rating*10).toFixed(0)}%)` : "-";
     const row = document.createElement("tr");
     row.innerHTML = `
+      <td><input type="checkbox" ${checked} onchange="toggleMovieSelection('${m.id}')"></td>
       <td>${m.title}</td>
       <td>${m.year}</td>
       <td>${m.type}</td>
       <td>${m.genres ? m.genres.join(", ") : ""}</td>
       <td>${ratingDisplay}</td>
       <td class="actions">
-        <button class="edit" onclick='editMovie("${docSnap.id}")'>Edit</button>
-        <button class="delete" onclick='deleteMovie("${docSnap.id}")'>Delete</button>
+        <button class="edit" onclick='editMovie("${m.id}")'>Edit</button>
+        <button class="delete" onclick='deleteMovie("${m.id}")'>Delete</button>
       </td>`;
     movieTable.appendChild(row);
   });
+  updateDeleteButtonState();
 }
+
+// -------------------- TOGGLE SELECTION --------------------
+window.toggleMovieSelection = id => {
+  if (selectedMovies.has(id)) selectedMovies.delete(id);
+  else selectedMovies.add(id);
+  updateDeleteButtonState();
+};
+
+window.toggleSelectAll = checkbox => {
+  if (checkbox.checked) allMovies.forEach(m => selectedMovies.add(m.id));
+  else selectedMovies.clear();
+  renderMovies(allMovies);
+};
+
+function updateDeleteButtonState() {
+  deleteSelectedBtn.disabled = selectedMovies.size === 0;
+  deleteSelectedBtn.textContent = selectedMovies.size
+    ? `🗑 Delete Selected (${selectedMovies.size})`
+    : "🗑 Delete Selected";
+}
+
+// -------------------- DELETE SELECTED --------------------
+window.deleteSelectedMovies = async () => {
+  if (selectedMovies.size === 0) return alert("No movies selected.");
+  if (!confirm(`Delete ${selectedMovies.size} selected movie(s)?`)) return;
+  for (const id of selectedMovies) {
+    await deleteDoc(doc(db, "movies", id));
+  }
+  selectedMovies.clear();
+  updateDeleteButtonState();
+  alert("✅ Selected movies deleted successfully!");
+};
+
+// -------------------- SINGLE DELETE --------------------
+window.deleteMovie = async id => {
+  if (confirm("Delete this movie?")) {
+    await deleteDoc(doc(db, "movies", id));
+    alert("🗑 Movie deleted");
+  }
+};
 
 // -------------------- LOAD MOVIES REALTIME --------------------
 onSnapshot(query(moviesRef, orderBy("createdAt", "desc")), snapshot => {
@@ -216,7 +247,6 @@ movieForm.addEventListener("submit", async e => {
     description: description.value.trim(),
     rating: parseFloat(rating.value) || null
   };
-
   const id = movieId.value;
   if (id) {
     await updateDoc(doc(db, "movies", id), movieData);
@@ -224,15 +254,11 @@ movieForm.addEventListener("submit", async e => {
   } else {
     const q = query(moviesRef, where("title", "==", movieData.title));
     const existing = await getDocs(q);
-    if (!existing.empty) {
-      alert("⚠️ Movie already exists. Edit it instead of adding.");
-      return;
-    }
+    if (!existing.empty) return alert("⚠️ Movie already exists. Edit it instead of adding.");
     movieData.createdAt = Date.now();
     await addDoc(moviesRef, movieData);
     alert("✅ Movie added!");
   }
-
   movieForm.reset();
   movieId.value = "";
 });
@@ -242,7 +268,6 @@ window.editMovie = async id => {
   const docs = await getDocs(moviesRef);
   const movieDoc = docs.docs.find(d => d.id === id);
   if (!movieDoc) return alert("Movie not found!");
-
   const m = movieDoc.data();
   movieId.value = id;
   title.value = m.title;
@@ -256,14 +281,7 @@ window.editMovie = async id => {
   rating.value = m.rating || "";
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
-
-// -------------------- DELETE MOVIE --------------------
-window.deleteMovie = async id => {
-  if (confirm("Delete this movie?")) {
-    await deleteDoc(doc(db, "movies", id));
-    alert("🗑 Movie deleted");
-  }
-};
 </script>
+
 </body>
 </html>
