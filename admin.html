@@ -101,7 +101,7 @@ let selectedMovies = new Set(); // Track multi-selection
 
 // -------------------- FETCH FROM TMDb --------------------
 async function fetchAllTMDbContent() {
-  const PAGES = 2;
+  const PAGES = 7;
   const endpoints = [
     { type: "Movie", label: "Now Playing", baseUrl: "https://api.themoviedb.org/3/movie/now_playing" },
     { type: "Movie", label: "Popular", baseUrl: "https://api.themoviedb.org/3/movie/popular" },
@@ -285,3 +285,4 @@ window.editMovie = async id => {
 
 </body>
 </html>
+
