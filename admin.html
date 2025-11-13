@@ -368,7 +368,55 @@ window.editMovie = async id => {
   rating.value = m.rating || "";
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
+  // -------------------- AUTO-RENEW WOOTLY LINK --------------------
+
+// Config
+const WOOTLY_FILE_ID = "91381f9d967238d3ee78e520cedb532ad6f51ed1"; // Change if needed
+const WOOTLY_REFRESH_BUFFER = 60; // Seconds before expiration to refresh
+let wootlyCurrentLink = ""; 
+let wootlyExpireTime = 0; 
+
+async function fetchWootlyLink() {
+  try {
+    // Replace with your actual API endpoint to generate new signed Wootly link
+    const res = await fetch(`https://web.wootly.ch/api/generateLink?id=${WOOTLY_FILE_ID}`);
+    const data = await res.json();
+
+    wootlyCurrentLink = data.url;       // new signed URL
+    wootlyExpireTime = data.expire;     // expiration timestamp in seconds
+
+    console.log("✅ New Wootly link fetched:", wootlyCurrentLink);
+    console.log("Expires at:", new Date(wootlyExpireTime * 1000).toLocaleString());
+
+    // Optionally update the fileUrl input if editing
+    if (fileUrl) fileUrl.value = wootlyCurrentLink;
+
+    scheduleWootlyRefresh();
+  } catch (err) {
+    console.error("❌ Failed to fetch Wootly link:", err);
+    setTimeout(fetchWootlyLink, 5000); // Retry in 5 sec
+  }
+}
+
+function scheduleWootlyRefresh() {
+  const now = Math.floor(Date.now() / 1000);
+  const timeUntilRefresh = Math.max(wootlyExpireTime - now - WOOTLY_REFRESH_BUFFER, 5);
+  console.log(`⏰ Next Wootly link refresh in ${timeUntilRefresh} seconds`);
+  setTimeout(fetchWootlyLink, timeUntilRefresh * 1000);
+}
+
+// Initialize Wootly auto-renew on page load
+fetchWootlyLink();
+
+// -------------------- USAGE --------------------
+// Anywhere in your code, use `wootlyCurrentLink` as the always-valid movie/stream URL
+// Example: rendering movie table with current link
+function getMovieLink(movie) {
+  return movie.fileUrl || wootlyCurrentLink;
+}
+
 </script>
 
 </body>
 </html>
+
