@@ -99,7 +99,7 @@ const TMDB_API_KEY = "4d2474df29f79bf9c784634d44137413";
 let allMovies = [];
 let selectedMovies = new Set(); // Track multi-selection
 
-// -------------------- FETCH FROM TMDb --------------------
+// -------------------- FETCH FROM TMDb (Full Date Check + Auto Genres + Update Support + Weekly Auto Run + Background Timer) --------------------
 async function fetchAllTMDbContent() {
   const PAGES = 7;
   const endpoints = [
@@ -111,50 +111,137 @@ async function fetchAllTMDbContent() {
   ];
 
   try {
+    const now = new Date();
+
+    // 🧠 Fetch genre lists for movies and TV
+    const [movieGenresRes, tvGenresRes] = await Promise.all([
+      fetch(`https://api.themoviedb.org/3/genre/movie/list?api_key=${TMDB_API_KEY}&language=en-US`),
+      fetch(`https://api.themoviedb.org/3/genre/tv/list?api_key=${TMDB_API_KEY}&language=en-US`)
+    ]);
+
+    const movieGenres = (await movieGenresRes.json()).genres || [];
+    const tvGenres = (await tvGenresRes.json()).genres || [];
+
+    // Combine into one genre map
+    const genreMap = {};
+    [...movieGenres, ...tvGenres].forEach(g => (genreMap[g.id] = g.name));
+
+    // 🎞 Loop through all endpoints
     for (const endpoint of endpoints) {
       console.log(`🔄 Fetching ${endpoint.label} ${endpoint.type}s...`);
+
       for (let page = 1; page <= PAGES; page++) {
         const url = endpoint.baseUrl.includes("?")
           ? `${endpoint.baseUrl}&api_key=${TMDB_API_KEY}&language=en-US&page=${page}`
           : `${endpoint.baseUrl}?api_key=${TMDB_API_KEY}&language=en-US&page=${page}`;
+
         const res = await fetch(url);
         const data = await res.json();
         const results = Array.isArray(data.results) ? data.results : [data];
+
         for (const item of results) {
           if (!item || (!item.title && !item.name)) continue;
+
           const title = item.title || item.name;
-          const releaseDate = item.release_date || item.first_air_date || "";
-          const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
+          const releaseDateStr = item.release_date || item.first_air_date;
+          if (!releaseDateStr) continue; // skip missing release date
 
+          const releaseDate = new Date(releaseDateStr);
+          if (isNaN(releaseDate)) continue; // skip invalid dates
+          if (releaseDate > now) continue; // ⛔ skip unreleased (future) titles
+
+          const year = releaseDate.getFullYear();
+          const month = releaseDate.getMonth() + 1;
+          const day = releaseDate.getDate();
+
+          // skip items that have no poster
+          if (!item.poster_path) continue;
+
+          const poster = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
+          const rating = item.vote_average || null;
+          const description = item.overview || "";
+          const genreNames = (item.genre_ids || []).map(id => genreMap[id]).filter(Boolean);
+
+          // 🔍 Check if the movie already exists
           const q = query(moviesRef, where("title", "==", title));
-          const existing = await getDocs(q);
-          if (!existing.empty) continue;
+          const existingSnap = await getDocs(q);
 
-          await addDoc(moviesRef, {
-            title,
-            year,
-            type: endpoint.type,
-            genres: [],
-            poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "",
-            trailer: "",
-            fileUrl: "",
-            description: item.overview || "",
-            rating: item.vote_average || null,
-            source: "tmdb",
-            category: endpoint.label,
-            createdAt: Date.now()
-          });
+          if (!existingSnap.empty) {
+            // ✅ Update existing entry
+            for (const docSnap of existingSnap.docs) {
+              await updateDoc(doc(db, "movies", docSnap.id), {
+                year,
+                releaseDate: releaseDateStr,
+                month,
+                day,
+                type: endpoint.type,
+                description,
+                rating,
+                poster,
+                genres: genreNames,
+                category: endpoint.label,
+                updatedAt: Date.now(),
+              });
+              console.log(`🔁 Updated: ${title}`);
+            }
+          } else {
+            // 🆕 Add new entry
+            await addDoc(moviesRef, {
+              title,
+              year,
+              month,
+              day,
+              releaseDate: releaseDateStr,
+              type: endpoint.type,
+              genres: genreNames,
+              poster,
+              trailer: "",
+              fileUrl: "",
+              description,
+              rating,
+              source: "tmdb",
+              category: endpoint.label,
+              createdAt: Date.now(),
+            });
+            console.log(`✅ Added: ${title}`);
+          }
         }
       }
-      console.log(`✅ ${endpoint.label} ${endpoint.type}s fetched successfully!`);
+
+      console.log(`✅ Completed ${endpoint.label} ${endpoint.type}s!`);
     }
-    alert("🎉 All movies, series, anime, and animations fetched and saved!");
+
+    alert("🎉 All released movies, series, anime, and animations fetched (checked by full date)!");
   } catch (e) {
     console.error("TMDb fetch error:", e);
     alert("⚠️ TMDb fetch failed. Check console for details.");
   }
 }
-fetchAllTMDbContent();
+
+// -------------------- AUTO RUN WEEKLY (WITH BACKGROUND CHECK) --------------------
+async function autoRunWeeklyTMDbFetch() {
+  const lastRun = localStorage.getItem("tmdb_last_run");
+  const now = Date.now();
+  const oneWeek = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+  if (!lastRun || now - lastRun > oneWeek) {
+    console.log("⏰ It's been a week (or never). Running TMDb auto-fetch...");
+    await fetchAllTMDbContent();
+    localStorage.setItem("tmdb_last_run", now);
+  } else {
+    const daysLeft = Math.ceil((oneWeek - (now - lastRun)) / (24 * 60 * 60 * 1000));
+    console.log(`✅ TMDb auto-fetch not needed yet. Next run in ~${daysLeft} day(s).`);
+  }
+}
+
+// 🔄 Run once on load
+autoRunWeeklyTMDbFetch();
+
+// ⏱ Background check every 12 hours (in case the site stays open)
+setInterval(() => {
+  console.log("🕒 Background TMDb check running...");
+  autoRunWeeklyTMDbFetch();
+}, 12 * 60 * 60 * 1000); // 12 hours
 
 // -------------------- RENDER MOVIES --------------------
 function renderMovies(list) {
@@ -285,4 +372,3 @@ window.editMovie = async id => {
 
 </body>
 </html>
-
