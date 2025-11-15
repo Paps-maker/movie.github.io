@@ -184,46 +184,9 @@ function convertYouTubeLink(url) {
   }
 }
 
-// Check if the URL is a downloadable video
+// Check if URL is directly downloadable
 function isDownloadable(url) {
   return /\.(mp4|mkv|mov|wmv|avi|flv|webm)$/i.test(url);
-}
-
-// 🔥 Trigger M-PESA Payment
-async function requestPayment(type, movieId, url) {
-  const price = type === "series" ? 30 : 15;
-  const phone = prompt(`Enter your M-PESA number to pay KSh ${price} for download:`);
-
-  if (!phone) return alert("Payment cancelled.");
-
-  // Call your Node.js backend to initiate STK push
-  const res = await fetch("/api/pay", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ movieId, url, phone, type })
-  });
-
-  const data = await res.json();
-
-  if (!data.success) return alert("Payment failed. Try again.");
-
-  alert("Check your phone to complete payment!");
-
-  // Poll payment status
-  checkPaymentStatus(movieId);
-}
-
-// Polling payment result
-async function checkPaymentStatus(movieId) {
-  let interval = setInterval(async () => {
-    const res = await fetch(`/api/payment-status?movieId=${movieId}`);
-    const data = await res.json();
-
-    if (data.status === "paid") {
-      clearInterval(interval);
-      window.location.href = data.downloadLink; // secure download link from server
-    }
-  }, 3000);
 }
 
 // ---------------- VIEW DETAILS ----------------
@@ -231,6 +194,7 @@ window.viewDetailsByFiltered = function (index) {
   const m = window.currentFiltered[index];
   const player = document.getElementById("modalPlayer");
   const episodeList = document.getElementById("episodeList");
+
   player.innerHTML = "";
   episodeList.innerHTML = "";
 
@@ -238,35 +202,67 @@ window.viewDetailsByFiltered = function (index) {
   if (m.trailer) {
     player.innerHTML += `
       <h4>Trailer</h4>
-      <iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen></iframe>
+      <iframe src="${convertYouTubeLink(m.trailer)}"
+              frameborder="0" allowfullscreen
+              style="width:100%;height:400px;"></iframe>
     `;
   }
 
-  // Movie Player / Embed
+  // Movie Player
   if (m.fileUrl) {
     const direct = isDownloadable(m.fileUrl);
 
     if (direct) {
-      // Direct video: show video + pay & download button
       player.innerHTML += `
         <h4>Movie</h4>
-        <video controls src="${m.fileUrl}"></video>
-        <button onclick="requestPayment('${m.type || 'movie'}','${m.id}','${m.fileUrl}')"
+        <video controls src="${m.fileUrl}" style="width:100%;max-height:500px;"></video>
+        <a href="${m.fileUrl}" download
           style="display:inline-block;margin-top:10px;background:#00ff66;
-                 padding:10px 15px;border-radius:6px;color:black;font-weight:bold;">
-          💰 Pay & Download
-        </button>
+                 padding:10px 15px;border-radius:6px;color:black;font-weight:bold;text-decoration:none;">
+          ⬇ Download
+        </a>
       `;
     } else {
-      // Streaming page: show iframe only
       player.innerHTML += `
         <h4>Movie</h4>
-        <iframe src="${m.fileUrl}" frameborder="0" allowfullscreen style="width:100%;height:500px;"></iframe>
+        <iframe src="${m.fileUrl}" frameborder="0" allowfullscreen
+                style="width:100%;height:500px;"></iframe>
       `;
     }
   }
 
-  // Update modal info
+  // ---------------- SHOW EPISODES (ONLY IF EXIST) ----------------
+  if (m.episodes && Array.isArray(m.episodes) && m.episodes.length > 0) {
+    episodeList.innerHTML = `<h4>Episodes</h4>`;
+
+    m.episodes.forEach(ep => {
+      const playable = isDownloadable(ep.url);
+
+      episodeList.innerHTML += `
+        <div style="border:1px solid #333;padding:10px;margin-top:8px;border-radius:6px;">
+          <strong>Episode ${ep.ep}: ${ep.title || ""}</strong><br>
+          ${ep.description ? `<small>${ep.description}</small><br>` : ""}
+          
+          ${playable
+            ? `
+              <video controls src="${ep.url}" style="width:100%;margin-top:8px;"></video>
+              <a href="${ep.url}" download
+                style="display:inline-block;margin-top:8px;background:#00ff66;
+                       padding:8px 12px;border-radius:6px;color:black;font-weight:bold;text-decoration:none;">
+                ⬇ Download Episode
+              </a>
+            `
+            : `
+              <iframe src="${ep.url}" frameborder="0" allowfullscreen
+                      style="width:100%;height:400px;margin-top:8px;"></iframe>
+            `
+          }
+        </div>
+      `;
+    });
+  }
+
+  // ---------------- UPDATE MODAL INFO ----------------
   document.getElementById("modalTitle").innerText = m.title;
   document.getElementById("modalYear").innerText = "Year: " + m.year;
   document.getElementById("modalGenres").innerText = "Genres: " + (m.genres || []).join(", ");
@@ -336,5 +332,6 @@ updateWatchlistButton();
 
 </body>
 </html>
+
 
 
