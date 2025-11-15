@@ -1,10 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="img/logo.png" type="image/png">
+
+
 <title>MovieDrift</title>
+
 <style>
 :root { --bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#ddd; --muted:#888; }
 body { margin:0; font-family:Arial,sans-serif; background:var(--bg); color: var(--text);}
@@ -37,11 +41,69 @@ iframe, video { width:100%; height:400px; border-radius:6px; margin-bottom:10px;
 .remove-btn:hover { background:#c82333;}
 .episode-list { margin-top:10px;}
 .episode-list button { margin:2px; font-size:0.8rem;}
+/* ----- THEMES ----- */
+.theme-dark {
+  --bg:#000;
+  --card-bg:#0a0a0a;
+  --accent:#00ff66;
+  --text:#ddd;
+  --muted:#888;
+}
+
+.theme-white {
+  --bg:#ffffff;
+  --card-bg:#f2f2f2;
+  --accent:#0066ff;
+  --text:#000;
+  --muted:#666;
+}
+
+.theme-pink {
+  --bg:#ffebf0;
+  --card-bg:#ffd6e3;
+  --accent:#ff2f8a;
+  --text:#5a0032;
+  --muted:#a64a6b;
+}
+
+.theme-blue {
+  --bg:#001122;
+  --card-bg:#0a1a33;
+  --accent:#00ccff;
+  --text:#d0eaff;
+  --muted:#88aacc;
+}
+
+.theme-gold {
+  --bg:#0d0c07;
+  --card-bg:#1a1a10;
+  --accent:#ffd700;
+  --text:#fff4c2;
+  --muted:#aa9955;
+}
+
+.theme-purple {
+  --bg:#120018;
+  --card-bg:#25002f;
+  --accent:#d800ff;
+  --text:#f9d9ff;
+  --muted:#b76cd8;
+}
+
 </style>
 </head>
 <body>
+  
 <header>
   <div class="logo">MovieDrift</div>
+  <select id="themeSelector">
+  <option value="dark">Dark Green (Default)</option>
+  <option value="white">White Mode</option>
+  <option value="pink">Soft Pink</option>
+  <option value="blue">Blue Neon</option>
+  <option value="gold">Gold Premium</option>
+  <option value="purple">Purple Night</option>
+</select>
   <div class="controls">
     <input id="search" type="search" placeholder="Search movies...">
     <select id="typeFilter"><option value="">All types</option><option value="Movie">Movie</option><option value="Series">Series</option><option value="Animation">Animation</option></select>
@@ -327,6 +389,31 @@ document.getElementById("yearFilter").addEventListener("change", renderMovies);
 document.getElementById("typeFilter").addEventListener("change", renderMovies);
 
 updateWatchlistButton();
+// ---------------- THEME SYSTEM ----------------
+const themeSelector = document.getElementById("themeSelector");
+
+// Load saved theme
+const savedTheme = localStorage.getItem("theme") || "dark";
+document.body.classList.add("theme-" + savedTheme);
+themeSelector.value = savedTheme;
+
+// Change theme instantly
+themeSelector.onchange = () => {
+  const theme = themeSelector.value;
+
+  document.body.classList.remove(
+    "theme-dark", 
+    "theme-white", 
+    "theme-pink", 
+    "theme-blue",
+    "theme-gold",
+    "theme-purple"
+  );
+
+  document.body.classList.add("theme-" + theme);
+  localStorage.setItem("theme", theme);
+};
+
 </script>
 
 
