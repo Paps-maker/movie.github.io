@@ -377,10 +377,48 @@ themeSelector.onchange = () => {
   localStorage.setItem("theme", theme);
 };
 </script>
+<script>
+(function() {
+  // Example: track steps in a multi-step process
+  let stepHistory = []; // store the visited steps
+  let currentStep = 1;  // starting step
+
+  function showStep(step) {
+    const steps = document.querySelectorAll('.step');
+    steps.forEach((s, i) => s.style.display = (i + 1 === step) ? 'block' : 'none');
+  }
+
+  // Call this whenever you move to a new step
+  window.nextStep = function() {
+    currentStep++;
+    showStep(currentStep);
+    stepHistory.push(currentStep);
+    history.pushState({ step: currentStep }, `Step ${currentStep}`);
+  }
+
+  // Initial step setup
+  showStep(currentStep);
+  stepHistory.push(currentStep);
+  history.replaceState({ step: currentStep }, `Step ${currentStep}`);
+
+  // Handle back button
+  window.onpopstate = function(event) {
+    if (event.state && event.state.step) {
+      currentStep = event.state.step;
+      showStep(currentStep);
+    } else {
+      // If no history left, let it exit normally
+      // Or optionally redirect to homepage
+      // window.location.href = '/';
+    }
+  }
+})();
+</script>
 
 
 </body>
 </html>
+
 
 
 
