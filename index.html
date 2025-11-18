@@ -376,12 +376,50 @@ themeSelector.onchange = () => {
   document.body.classList.add("theme-" + theme);
   localStorage.setItem("theme", theme);
 };
+  // ---------------- BACK BUTTON HANDLING ----------------
+(function() {
+  const modalIds = ["movieModal", "watchlistModal"];
+  let openModal = null;
+
+  // Listen for modal openings
+  const observer = new MutationObserver(() => {
+    modalIds.forEach(id => {
+      const modal = document.getElementById(id);
+      if (modal.style.display === "flex") {
+        openModal = modal;
+        // Push state only if a modal opens
+        history.pushState({ modalOpen: true, modalId: id }, "");
+      }
+    });
+  });
+  observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ["style"] });
+
+  // Handle back button
+  window.addEventListener("popstate", function(event) {
+    if (event.state && event.state.modalOpen && event.state.modalId) {
+      const modal = document.getElementById(event.state.modalId);
+      if (modal) {
+        modal.style.display = "none";
+        openModal = null;
+      }
+    } else if (openModal) {
+      // Close currently open modal
+      openModal.style.display = "none";
+      openModal = null;
+      // Push a new state so user can go back to previous page if desired
+      history.pushState({}, "");
+    }
+    // If no modal is open, back button works normally
+  });
+})();
+
 </script>
 
 
 
 </body>
 </html>
+
 
 
 
