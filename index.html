@@ -145,7 +145,7 @@ main { padding:20px;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 // ---------------- FIREBASE CONFIG ----------------
 const firebaseConfig = {
@@ -167,7 +167,7 @@ const genreFilter = document.getElementById("genreFilter");
 const yearFilter = document.getElementById("yearFilter");
 
 // ---------------- LOAD MOVIES REALTIME (NEWEST YEAR FIRST) ----------------
-onSnapshot(collection(db, "movies"), snapshot => {
+onSnapshot(collection(db, "movies"), async snapshot => {
   movies = snapshot.docs
     .map(d => {
       const data = d.data();
@@ -175,18 +175,32 @@ onSnapshot(collection(db, "movies"), snapshot => {
         ? data.createdAt.seconds * 1000
         : data.createdAt || 0;
       const year = parseInt(data.year) || 0;
-      return { id: d.id, ...data, createdAt, year };
+      return { id: d.id, ...data, createdAt, year, episodes: [] }; // add episodes array
     })
     .sort((a, b) => {
-      // Sort by year first (descending), then by upload date (descending)
       if (b.year !== a.year) return b.year - a.year;
       return b.createdAt - a.createdAt;
     });
 
+  // ---------------- REAL-TIME EPISODES FETCH ----------------
+  movies.forEach(m => {
+    if (m.type === "Series") {
+      const episodesColl = collection(db, "movies", m.id, "episodes");
+      const q = query(episodesColl, orderBy("epNumber", "asc"));
+      onSnapshot(q, snapshot => {
+        m.episodes = snapshot.docs.map(d => ({
+          id: d.id,
+          ep: d.data().epNumber,
+          ...d.data()
+        })).sort((a,b) => (a.ep||0)-(b.ep||0));
+        renderMovies(); // update UI when episodes change
+      });
+    }
+  });
+
   populateFilters();
   renderMovies();
 });
-
 
 // ---------------- FILTER OPTIONS ----------------
 function populateFilters() {
@@ -252,7 +266,6 @@ function convertYouTubeLink(url) {
   }
 }
 
-// Check if URL is directly downloadable
 function isDownloadable(url) {
   return /\.(mp4|mkv|mov|wmv|avi|flv|webm)$/i.test(url);
 }
@@ -266,71 +279,43 @@ window.viewDetailsByFiltered = function (index) {
   player.innerHTML = "";
   episodeList.innerHTML = "";
 
-  // Trailer
   if (m.trailer) {
     player.innerHTML += `
       <h4>Trailer</h4>
-      <iframe src="${convertYouTubeLink(m.trailer)}"
-              frameborder="0" allowfullscreen
-              style="width:100%;height:400px;"></iframe>
+      <iframe src="${convertYouTubeLink(m.trailer)}" frameborder="0" allowfullscreen style="width:100%;height:400px;"></iframe>
     `;
   }
 
-  // Movie Player
   if (m.fileUrl) {
     const direct = isDownloadable(m.fileUrl);
-
     if (direct) {
-      player.innerHTML += `
-        <h4>Movie</h4>
-        <video controls src="${m.fileUrl}" style="width:100%;max-height:500px;"></video>
-        <a href="${m.fileUrl}" download
-          style="display:inline-block;margin-top:10px;background:#00ff66;
-                 padding:10px 15px;border-radius:6px;color:black;font-weight:bold;text-decoration:none;">
-          ⬇ Download
-        </a>
-      `;
+      player.innerHTML += `<h4>Movie</h4><video controls src="${m.fileUrl}" style="width:100%;max-height:500px;"></video>
+        <a href="${m.fileUrl}" download style="display:inline-block;margin-top:10px;background:#00ff66;
+        padding:10px 15px;border-radius:6px;color:black;font-weight:bold;text-decoration:none;">⬇ Download</a>`;
     } else {
-      player.innerHTML += `
-        <h4>Movie</h4>
-        <iframe src="${m.fileUrl}" frameborder="0" allowfullscreen
-                style="width:100%;height:500px;"></iframe>
-      `;
+      player.innerHTML += `<h4>Movie</h4><iframe src="${m.fileUrl}" frameborder="0" allowfullscreen style="width:100%;height:500px;"></iframe>`;
     }
   }
 
-  // ---------------- SHOW EPISODES (ONLY IF EXIST) ----------------
+  // ---------------- SHOW EPISODES (REAL-TIME) ----------------
   if (m.episodes && Array.isArray(m.episodes) && m.episodes.length > 0) {
     episodeList.innerHTML = `<h4>Episodes</h4>`;
-
     m.episodes.forEach(ep => {
-      const playable = isDownloadable(ep.url);
-
+      const playable = isDownloadable(ep.fileUrl || ep.url);
+      const epUrl = ep.fileUrl || ep.url;
       episodeList.innerHTML += `
         <div style="border:1px solid #333;padding:10px;margin-top:8px;border-radius:6px;">
           <strong>Episode ${ep.ep}: ${ep.title || ""}</strong><br>
           ${ep.description ? `<small>${ep.description}</small><br>` : ""}
-          
-          ${playable
-            ? `
-              <video controls src="${ep.url}" style="width:100%;margin-top:8px;"></video>
-              <a href="${ep.url}" download
-                style="display:inline-block;margin-top:8px;background:#00ff66;
-                       padding:8px 12px;border-radius:6px;color:black;font-weight:bold;text-decoration:none;">
-                ⬇ Download Episode
-              </a>
-            `
-            : `
-              <iframe src="${ep.url}" frameborder="0" allowfullscreen
-                      style="width:100%;height:400px;margin-top:8px;"></iframe>
-            `
-          }
+          ${playable ? `<video controls src="${epUrl}" style="width:100%;margin-top:8px;"></video>
+          <a href="${epUrl}" download style="display:inline-block;margin-top:8px;background:#00ff66;
+             padding:8px 12px;border-radius:6px;color:black;font-weight:bold;text-decoration:none;">⬇ Download Episode</a>` 
+          : `<iframe src="${epUrl}" frameborder="0" allowfullscreen style="width:100%;height:400px;margin-top:8px;"></iframe>`}
         </div>
       `;
     });
   }
 
-  // ---------------- UPDATE MODAL INFO ----------------
   document.getElementById("modalTitle").innerText = m.title;
   document.getElementById("modalYear").innerText = "Year: " + m.year;
   document.getElementById("modalGenres").innerText = "Genres: " + (m.genres || []).join(", ");
@@ -343,7 +328,6 @@ window.viewDetailsByFiltered = function (index) {
   document.getElementById("modalAddToList").onclick = () => addToWatchlistByFiltered(index);
 };
 
-
 // ---------------- WATCHLIST ----------------
 window.addToWatchlistByFiltered = function (index) {
   const m = window.currentFiltered[index];
@@ -354,13 +338,8 @@ window.addToWatchlistByFiltered = function (index) {
   } else alert("⚠️ Already in Watchlist");
   updateWatchlistButton();
 };
-
-function saveWatchlist() {
-  localStorage.setItem("watchlist", JSON.stringify(watchlist));
-}
-function updateWatchlistButton() {
-  document.getElementById("watchlistToggle").textContent = `Watchlist (${watchlist.length})`;
-}
+function saveWatchlist() { localStorage.setItem("watchlist", JSON.stringify(watchlist)); }
+function updateWatchlistButton() { document.getElementById("watchlistToggle").textContent = `Watchlist (${watchlist.length})`; }
 
 window.watchTrailerByFiltered = index => viewDetailsByFiltered(index);
 window.closeModal = id => (document.getElementById(id).style.display = "none");
@@ -368,25 +347,15 @@ window.closeModal = id => (document.getElementById(id).style.display = "none");
 document.getElementById("watchlistToggle").onclick = function () {
   const container = document.getElementById("watchlistContainer");
   container.innerHTML = watchlist.length
-    ? watchlist
-        .map(
-          (m, i) =>
-            `<div class='watchlist-card'>
-              <img src='${m.poster}'><h4>${m.title}</h4><p>${m.year}</p>
-              <button class='remove-btn' onclick='removeFromWatchlist(${i})'>Remove</button>
-            </div>`
-        )
-        .join("")
+    ? watchlist.map((m, i) =>
+        `<div class='watchlist-card'>
+          <img src='${m.poster}'><h4>${m.title}</h4><p>${m.year}</p>
+          <button class='remove-btn' onclick='removeFromWatchlist(${i})'>Remove</button>
+        </div>`).join("")
     : "<p>No movies yet.</p>";
   document.getElementById("watchlistModal").style.display = "flex";
 };
-
-window.removeFromWatchlist = i => {
-  watchlist.splice(i, 1);
-  saveWatchlist();
-  updateWatchlistButton();
-  document.getElementById("watchlistToggle").click(); // refresh watchlist modal
-};
+window.removeFromWatchlist = i => { watchlist.splice(i, 1); saveWatchlist(); updateWatchlistButton(); document.getElementById("watchlistToggle").click(); };
 
 // ---------------- EVENT LISTENERS ----------------
 document.getElementById("search").addEventListener("input", renderMovies);
@@ -395,36 +364,24 @@ document.getElementById("yearFilter").addEventListener("change", renderMovies);
 document.getElementById("typeFilter").addEventListener("change", renderMovies);
 
 updateWatchlistButton();
+
 // ---------------- THEME SYSTEM ----------------
 const themeSelector = document.getElementById("themeSelector");
-
-// Load saved theme
 const savedTheme = localStorage.getItem("theme") || "dark";
 document.body.classList.add("theme-" + savedTheme);
 themeSelector.value = savedTheme;
-
-// Change theme instantly
 themeSelector.onchange = () => {
   const theme = themeSelector.value;
-
-  document.body.classList.remove(
-    "theme-dark", 
-    "theme-white", 
-    "theme-pink", 
-    "theme-blue",
-    "theme-gold",
-    "theme-purple"
-  );
-
+  document.body.classList.remove("theme-dark", "theme-white", "theme-pink", "theme-blue", "theme-gold", "theme-purple");
   document.body.classList.add("theme-" + theme);
   localStorage.setItem("theme", theme);
 };
-
 </script>
 
 
 </body>
 </html>
+
 
 
 
