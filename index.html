@@ -9,16 +9,14 @@
 
 <title>MovieDrift</title>
 
-<style> 
+<style>
 :root { --bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#ddd; --muted:#888; }
 body { margin:0; font-family:Arial,sans-serif; background:var(--bg); color: var(--text);}
 header { display:flex; justify-content:space-between; align-items:center; background:#111; padding:10px 20px; flex-wrap:wrap;}
 .logo { font-size:24px; font-weight:bold; color: var(--accent);}
 .controls { display:flex; gap:10px; flex-wrap:wrap;}
 input, select, button, textarea { padding:6px 10px; border:1px solid var(--accent); border-radius:4px; background: var(--card-bg); color: var(--text);}
-button { cursor:pointer; font-weight:bold;} 
-button:hover { background:#003300;}
-
+button { cursor:pointer; font-weight:bold;} button:hover { background:#003300;}
 main { padding:20px;}
 .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap:20px;}
 .card { background: var(--card-bg); border:1px solid rgba(0,255,102,0.15); border-radius:8px; overflow:hidden; display:flex; flex-direction:column; transition: transform 0.2s;}
@@ -31,45 +29,49 @@ main { padding:20px;}
 .card-actions { display:flex; gap:5px; flex-wrap:wrap;}
 .btn { flex:1; text-align:center;}
 
-/* ---------------- FIXED MODAL (WORKS ON TV & BIG SCREENS) ---------------- */
-.modal { 
-  display:none; 
-  position:fixed; 
-  inset:0; 
-  background:rgba(0,0,0,0.9); 
-  justify-content:center; 
-  align-items:flex-start;    /* TOP aligned so bottom is scrollable */
-  z-index:1000; 
-  overflow-y:auto;           /* FULL scroll support */
-  padding:20px 0;            /* breathing space */
+/* ---------------------------------------------------
+   UPDATED MODAL SECTION — SCROLL FIX FOR TV + BIG SCREENS
+------------------------------------------------------*/
+.modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  justify-content:center;
+  align-items:flex-start;
+  z-index:1000;
+  overflow-y:auto !important;
+  padding:20px 0;
 }
 
-.modal-content { 
-  background:var(--card-bg); 
-  max-width:900px; 
-  width:95%; 
-  height:auto;
-  max-height:none;           /* remove height limit (TV friendly) */
-  overflow-y:visible; 
-  border-radius:8px; 
-  padding:20px; 
+.modal-content {
+  background:var(--card-bg);
+  max-width:900px;
+  width:95%;
+  border-radius:8px;
+  padding:20px;
   position:relative;
-  margin:40px auto;          /* clean spacing top & bottom */
+  margin:40px auto;
 }
 
-/* Adaptive video player for ALL screen sizes */
-.modal-content iframe,
-.modal-content video { 
-  width:100%; 
-  height:auto; 
-  max-height:60vh;           /* prevents overflow on big screens */
-  border-radius:6px; 
-  margin-bottom:10px;
+.modal-scroll-area {
+  max-height:75vh;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding-right:10px;
+  -webkit-overflow-scrolling:touch;
 }
 
 .close { position:absolute; top:10px; right:15px; cursor:pointer; color:var(--accent); font-size:22px;}
 
-/* ---------------- WATCHLIST ---------------- */
+iframe, video { 
+  width:100%; 
+  height:400px; 
+  max-height:55vh; 
+  border-radius:6px; 
+  margin-bottom:10px;
+}
+
 #watchlistModal h2 { color:var(--accent); margin-bottom:15px;}
 #watchlistModal .movie-list { display:grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:15px;}
 .watchlist-card { background:#111; border-radius:8px; padding:10px; text-align:center; transition:transform 0.2s;}
@@ -77,19 +79,59 @@ main { padding:20px;}
 .watchlist-card img { width:100%; aspect-ratio: 2/3; object-fit:cover; margin-bottom:6px;}
 .remove-btn { margin-top:6px; padding:4px 8px; border:none; border-radius:4px; background:#e63946; color:white; cursor:pointer; font-size:0.8rem;}
 .remove-btn:hover { background:#c82333;}
-
 .episode-list { margin-top:10px;}
 .episode-list button { margin:2px; font-size:0.8rem;}
 
 /* ----- THEMES ----- */
-.theme-dark { --bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#ddd; --muted:#888; }
-.theme-white { --bg:#ffffff; --card-bg:#f2f2f2; --accent:#0066ff; --text:#000; --muted:#666; }
-.theme-pink { --bg:#ffebf0; --card-bg:#ffd6e3; --accent:#ff2f8a; --text:#5a0032; --muted:#a64a6b; }
-.theme-blue { --bg:#001122; --card-bg:#0a1a33; --accent:#00ccff; --text:#d0eaff; --muted:#88aacc; }
-.theme-gold { --bg:#0d0c07; --card-bg:#1a1a10; --accent:#ffd700; --text:#fff4c2; --muted:#aa9955; }
-.theme-purple { --bg:#120018; --card-bg:#25002f; --accent:#d800ff; --text:#f9d9ff; --muted:#b76cd8; }
+.theme-dark {
+  --bg:#000;
+  --card-bg:#0a0a0a;
+  --accent:#00ff66;
+  --text:#ddd;
+  --muted:#888;
+}
 
-/* --- Phone layout: 2 cards per row --- */
+.theme-white {
+  --bg:#ffffff;
+  --card-bg:#f2f2f2;
+  --accent:#0066ff;
+  --text:#000;
+  --muted:#666;
+}
+
+.theme-pink {
+  --bg:#ffebf0;
+  --card-bg:#ffd6e3;
+  --accent:#ff2f8a;
+  --text:#5a0032;
+  --muted:#a64a6b;
+}
+
+.theme-blue {
+  --bg:#001122;
+  --card-bg:#0a1a33;
+  --accent:#00ccff;
+  --text:#d0eaff;
+  --muted:#88aacc;
+}
+
+.theme-gold {
+  --bg:#0d0c07;
+  --card-bg:#1a1a10;
+  --accent:#ffd700;
+  --text:#fff4c2;
+  --muted:#aa9955;
+}
+
+.theme-purple {
+  --bg:#120018;
+  --card-bg:#25002f;
+  --accent:#d800ff;
+  --text:#f9d9ff;
+  --muted:#b76cd8;
+}
+
+/* --- FIX: ensure 2 movie cards per row on phones --- */
 @media (max-width: 600px) {
   .grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -125,16 +167,21 @@ main { padding:20px;}
 <div class="modal" id="movieModal">
   <div class="modal-content">
     <span class="close" onclick="closeModal('movieModal')">&times;</span>
-    <h2 id="modalTitle"></h2>
-    <p id="modalYear"></p>
-    <p id="modalGenres"></p>
-    <p class="rating" id="modalRating"></p>
-    <div id="modalPlayer"></div>
-    <div class="episode-list" id="episodeList"></div>
-    <p id="modalDesc"></p>
-    <button id="modalAddToList" class="btn">➕ Add to Watchlist</button>
+
+    <div class="modal-scroll-area">
+      <h2 id="modalTitle"></h2>
+      <p id="modalYear"></p>
+      <p id="modalGenres"></p>
+      <p class="rating" id="modalRating"></p>
+      <div id="modalPlayer"></div>
+      <div class="episode-list" id="episodeList"></div>
+      <p id="modalDesc"></p>
+      <button id="modalAddToList" class="btn">➕ Add to Watchlist</button>
+    </div>
+
   </div>
 </div>
+
 
 <div class="modal" id="watchlistModal">
   <div class="modal-content">
@@ -420,6 +467,7 @@ themeSelector.onchange = () => {
 
 </body>
 </html>
+
 
 
 
