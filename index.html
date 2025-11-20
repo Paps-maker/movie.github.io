@@ -31,43 +31,56 @@ main { padding:20px;}
 .card-actions { display:flex; gap:5px; flex-wrap:wrap;}
 .btn { flex:1; text-align:center;}
 
-/* ---------------- FIXED MODAL (WORKS ON TV & BIG SCREENS) ---------------- */
+/* ---------------- FIXED MODAL (TV + BIG SCREENS SAFE) ---------------- */
 .modal { 
   display:none; 
   position:fixed; 
   inset:0; 
-  background:rgba(0,0,0,0.9); 
+  background:rgba(0,0,0,0.92); 
   justify-content:center; 
-  align-items:flex-start;    /* TOP aligned so bottom is scrollable */
+  align-items:center;              /* center on all screens */
   z-index:1000; 
-  overflow-y:auto;           /* FULL scroll support */
-  padding:20px 0;            /* breathing space */
+  overflow-y:auto;                 /* allow full scroll on TVs */
+  padding:40px 20px;               /* space for top & bottom */
 }
 
+/* SAFE modal container for TVs */
 .modal-content { 
   background:var(--card-bg); 
-  max-width:900px; 
-  width:95%; 
-  height:auto;
-  max-height:none;           /* remove height limit (TV friendly) */
-  overflow-y:visible; 
-  border-radius:8px; 
+  width:90%;
+  max-width:1000px;
+
+  /* Prevent TV clipping */
+  max-height:90vh;                 /* always fits inside ANY TV */
+  overflow-y:auto;                 /* internal scroll for long content */
+
+  border-radius:10px; 
   padding:20px; 
   position:relative;
-  margin:40px auto;          /* clean spacing top & bottom */
 }
 
-/* Adaptive video player for ALL screen sizes */
+/* Responsive Player */
 .modal-content iframe,
 .modal-content video { 
   width:100%; 
-  height:auto; 
-  max-height:60vh;           /* prevents overflow on big screens */
+  height:auto;
+  
+  /* keep player fully visible on TVs */
+  max-height:45vh;                 /* prevents overflow even on 720p TVs */
+
   border-radius:6px; 
-  margin-bottom:10px;
+  margin-bottom:15px;
 }
 
-.close { position:absolute; top:10px; right:15px; cursor:pointer; color:var(--accent); font-size:22px;}
+/* Close button */
+.close { 
+  position:absolute; 
+  top:10px; 
+  right:15px; 
+  cursor:pointer; 
+  color:var(--accent); 
+  font-size:26px;
+}
 
 /* ---------------- WATCHLIST ---------------- */
 #watchlistModal h2 { color:var(--accent); margin-bottom:15px;}
@@ -481,6 +494,7 @@ themeSelector.onchange = () => {
 
 </body>
 </html>
+
 
 
 
