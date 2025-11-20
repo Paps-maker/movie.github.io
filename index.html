@@ -38,10 +38,14 @@ main { padding:20px;}
   inset:0; 
   background:rgba(0,0,0,0.92); 
   justify-content:center; 
-  align-items:center;              /* center on all screens */
+  align-items:center;               /* center modal on all screens */
   z-index:1000; 
-  overflow-y:auto;                 /* allow full scroll on TVs */
-  padding:40px 20px;               /* space for top & bottom */
+
+  /* TV scroll support */
+  overflow-y:auto;
+  -webkit-overflow-scrolling: touch;
+
+  padding:40px 20px;                /* spacing for top & bottom */
 }
 
 /* SAFE modal container for TVs */
@@ -51,8 +55,9 @@ main { padding:20px;}
   max-width:1000px;
 
   /* Prevent TV clipping */
-  max-height:90vh;                 /* always fits inside ANY TV */
-  overflow-y:auto;                 /* internal scroll for long content */
+  max-height:90vh;                  /* always fits inside ANY TV */
+  overflow-y:auto;                  /* internal scroll for long content */
+  -webkit-overflow-scrolling: touch; /* smooth TV scroll */
 
   border-radius:10px; 
   padding:20px; 
@@ -64,9 +69,9 @@ main { padding:20px;}
 .modal-content video { 
   width:100%; 
   height:auto;
-  
-  /* keep player fully visible on TVs */
-  max-height:45vh;                 /* prevents overflow even on 720p TVs */
+
+  /* keep video fully visible on TVs */
+  max-height:40vh;                  /* safer for 720p / 1080p TVs */
 
   border-radius:6px; 
   margin-bottom:15px;
@@ -81,6 +86,7 @@ main { padding:20px;}
   color:var(--accent); 
   font-size:26px;
 }
+
 
 /* ---------------- WATCHLIST ---------------- */
 #watchlistModal h2 { color:var(--accent); margin-bottom:15px;}
@@ -494,6 +500,7 @@ themeSelector.onchange = () => {
 
 </body>
 </html>
+
 
 
 
