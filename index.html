@@ -9,7 +9,7 @@
 <title>MovieDrift</title>
 
 
-<style>
+<style> 
 :root { --bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#ddd; --muted:#888; }
 body { margin:0; font-family:Arial,sans-serif; background:var(--bg); color: var(--text);}
 header { display:flex; justify-content:space-between; align-items:center; background:#111; padding:10px 20px; flex-wrap:wrap;}
@@ -31,120 +31,55 @@ main { padding:20px;}
 .card-actions { display:flex; gap:5px; flex-wrap:wrap;}
 .btn { flex:1; text-align:center;}
 
-/* ---------------- PROFESSIONAL MODAL ---------------- */
-.modal {
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.95);
-  justify-content:center;
-  align-items:center;
-  z-index:10000;
-  overflow-y:auto;
-  padding:40px 20px;
+/* ---------------- FIXED MODAL (TV + BIG SCREENS SAFE) ---------------- */
+.modal { 
+  display:none; 
+  position:fixed; 
+  inset:0; 
+  background:rgba(0,0,0,0.92); 
+  justify-content:center; 
+  align-items:center;              /* center on all screens */
+  z-index:1000; 
+  overflow-y:auto;                 /* allow full scroll on TVs */
+  padding:40px 20px;               /* space for top & bottom */
 }
 
-.modal-content {
-  background:var(--card-bg);
+/* SAFE modal container for TVs */
+.modal-content { 
+  background:var(--card-bg); 
   width:90%;
-  max-width:1100px;
-  max-height:90vh;
-  overflow-y:auto;
-  border-radius:12px;
-  padding:20px 30px;
+  max-width:1000px;
+
+  /* Prevent TV clipping */
+  max-height:90vh;                 /* always fits inside ANY TV */
+  overflow-y:auto;                 /* internal scroll for long content */
+
+  border-radius:10px; 
+  padding:20px; 
   position:relative;
-  display:flex;
-  flex-direction:column;
-  gap:20px;
+}
+
+/* Responsive Player */
+.modal-content iframe,
+.modal-content video { 
+  width:100%; 
+  height:auto;
+  
+  /* keep player fully visible on TVs */
+  max-height:45vh;                 /* prevents overflow even on 720p TVs */
+
+  border-radius:6px; 
+  margin-bottom:15px;
 }
 
 /* Close button */
-.close {
-  position:absolute;
-  top:10px;
-  right:15px;
-  cursor:pointer;
-  color:var(--accent);
-  font-size:30px;
-  background: rgba(0,0,0,0.5);
-  padding:4px 10px;
-  border-radius:50%;
-}
-
-/* Header & Meta */
-.modal-header h2 {
-  font-size:2rem;
-  margin:0;
-  color:var(--accent);
-}
-.modal-meta {
-  font-size:1rem;
-  color:var(--muted);
-  margin-top:5px;
-}
-
-/* Player */
-.modal-player {
-  width:100%;
-  aspect-ratio:16/9;
-}
-.modal-player iframe,
-.modal-player video {
-  width:100%;
-  height:100%;
-  border-radius:8px;
-}
-
-/* Episodes */
-.episode-section h3 {
-  font-size:1.2rem;
-  color:var(--accent);
-  margin-bottom:1px;
-}
-.episode-list {
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-}
-.episode-btn {
-  background:#222;
-  color:#fff;
-  border-radius:6px;
-  padding:10px 12px;
-  border:1px solid #555;
-  cursor:pointer;
-}
-.episode-btn:hover,
-.episode-btn:focus {
-  outline:3px solid var(--accent);
-  transform:scale(1.05);
-}
-
-/* Description */
-.modal-desc p {
-  font-size:1rem;
-  color:var(--text);
-  line-height:1.6;
-}
-
-/* Actions */
-.modal-actions {
-  display:flex;
-  justify-content:flex-start;
-}
-.modal-actions .btn {
-  background:#e50914;
-  color:#fff;
-  border:none;
-  padding:12px 18px;
-  border-radius:8px;
-  font-size:1rem;
-  cursor:pointer;
-}
-.modal-actions .btn:hover,
-.modal-actions .btn:focus {
-  transform:scale(1.05);
-  outline:3px solid var(--accent);
+.close { 
+  position:absolute; 
+  top:10px; 
+  right:15px; 
+  cursor:pointer; 
+  color:var(--accent); 
+  font-size:26px;
 }
 
 /* ---------------- WATCHLIST ---------------- */
@@ -152,9 +87,12 @@ main { padding:20px;}
 #watchlistModal .movie-list { display:grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:15px;}
 .watchlist-card { background:#111; border-radius:8px; padding:10px; text-align:center; transition:transform 0.2s;}
 .watchlist-card:hover { transform:scale(1.05); background:#181818;}
-.watchlist-card img { width:100%; aspect-ratio:2/3; object-fit:cover; margin-bottom:6px;}
+.watchlist-card img { width:100%; aspect-ratio: 2/3; object-fit:cover; margin-bottom:6px;}
 .remove-btn { margin-top:6px; padding:4px 8px; border:none; border-radius:4px; background:#e63946; color:white; cursor:pointer; font-size:0.8rem;}
 .remove-btn:hover { background:#c82333;}
+
+.episode-list { margin-top:10px;}
+.episode-list button { margin:2px; font-size:0.8rem;}
 
 /* ----- THEMES ----- */
 .theme-dark { --bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#ddd; --muted:#888; }
@@ -166,13 +104,33 @@ main { padding:20px;}
 
 /* --- Phone layout: 2 cards per row --- */
 @media (max-width: 600px) {
-  .grid { grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); }
-  .modal-header h2 { font-size:1.5rem; }
-  .modal-meta { font-size:0.9rem; }
-  .modal-actions .btn { font-size:0.9rem; padding:10px 15px; }
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+  .wa-small-btn {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:#25D366;
+  color:#000;
+  padding:6px 10px;
+  border-radius:20px;
+  font-size:13px;
+  font-weight:600;
+  text-decoration:none;
+  border:1px solid #128C7E;
+  transition:0.2s ease-in-out;
 }
 
-/* WhatsApp small button */
+.wa-small-btn:hover {
+  background:#1ebe5d;
+  transform:scale(1.05);
+}
+
+.wa-small-btn svg {
+  display:block;
+}
 .wa-small-btn {
   display:inline-flex;
   align-items:center;
@@ -187,19 +145,17 @@ main { padding:20px;}
   border:1px solid #128C7E;
   transition:0.2s ease-in-out;
 }
-.wa-small-btn:hover { background:#1ebe5d; transform:scale(1.05); }
-.wa-small-btn svg { display:block; }
 
-/* TV REMOTE FOCUS STYLE */
-.tv-focus {
-  outline:4px solid var(--accent);
-  outline-offset:4px;
-  transform:scale(1.08) !important;
-  z-index:5 !important;
-  transition:0.15s ease-in-out;
+.wa-small-btn:hover {
+  background:#1ebe5d;
+  transform:scale(1.05);
 }
-</style>
 
+.wa-small-btn svg {
+  display:block;
+}
+
+</style>
 
 </head>
 <body>
@@ -234,52 +190,23 @@ main { padding:20px;}
 
 <main><div id="grid" class="grid"></div></main>
 
-
-
- <div class="modal" id="movieModal">
+<div class="modal" id="movieModal">
   <div class="modal-content">
-    <!-- Close Button -->
     <span class="close" onclick="closeModal('movieModal')">&times;</span>
 
-    <!-- Modal Scrollable Area -->
     <div class="modal-scroll-area">
-      
-      <!-- Movie Header -->
-      <div class="modal-header">
-        <h2 id="modalTitle">Movie Title</h2>
-        <div class="modal-meta">
-          <span id="modalYear">2025</span> | 
-          <span id="modalGenres">Action, Adventure</span> | 
-          <span class="rating" id="modalRating">⭐ 8.5</span>
-        </div>
-      </div>
-
-      <!-- Video Player -->
-      <div class="modal-player">
-        <div id="modalPlayer"></div>
-      </div>
-
-      <!-- Episodes -->
-      <div class="episode-section">
-        <h3>Episodes</h3>
-        <div class="episode-list" id="episodeList"></div>
-      </div>
-
-      <!-- Movie Description -->
-      <div class="modal-desc">
-        <p id="modalDesc">This is the movie description. It can be long, but the modal will scroll smoothly to fit all content.</p>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="modal-actions">
-        <button id="modalAddToList" class="btn">➕ Add to Watchlist</button>
-      </div>
-
+      <h2 id="modalTitle"></h2>
+      <p id="modalYear"></p>
+      <p id="modalGenres"></p>
+      <p class="rating" id="modalRating"></p>
+      <div id="modalPlayer"></div>
+      <div class="episode-list" id="episodeList"></div>
+      <p id="modalDesc"></p>
+      <button id="modalAddToList" class="btn">➕ Add to Watchlist</button>
     </div>
+
   </div>
 </div>
-
-
 
 
 <div class="modal" id="watchlistModal">
@@ -665,6 +592,7 @@ document.addEventListener("keydown", (e) => {
 
 </body>
 </html>
+
 
 
 
