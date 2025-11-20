@@ -38,14 +38,10 @@ main { padding:20px;}
   inset:0; 
   background:rgba(0,0,0,0.92); 
   justify-content:center; 
-  align-items:center;               /* center modal on all screens */
+  align-items:center;              /* center on all screens */
   z-index:1000; 
-
-  /* TV scroll support */
-  overflow-y:auto;
-  -webkit-overflow-scrolling: touch;
-
-  padding:40px 20px;                /* spacing for top & bottom */
+  overflow-y:auto;                 /* allow full scroll on TVs */
+  padding:40px 20px;               /* space for top & bottom */
 }
 
 /* SAFE modal container for TVs */
@@ -55,9 +51,8 @@ main { padding:20px;}
   max-width:1000px;
 
   /* Prevent TV clipping */
-  max-height:90vh;                  /* always fits inside ANY TV */
-  overflow-y:auto;                  /* internal scroll for long content */
-  -webkit-overflow-scrolling: touch; /* smooth TV scroll */
+  max-height:90vh;                 /* always fits inside ANY TV */
+  overflow-y:auto;                 /* internal scroll for long content */
 
   border-radius:10px; 
   padding:20px; 
@@ -69,9 +64,9 @@ main { padding:20px;}
 .modal-content video { 
   width:100%; 
   height:auto;
-
-  /* keep video fully visible on TVs */
-  max-height:40vh;                  /* safer for 720p / 1080p TVs */
+  
+  /* keep player fully visible on TVs */
+  max-height:45vh;                 /* prevents overflow even on 720p TVs */
 
   border-radius:6px; 
   margin-bottom:15px;
@@ -86,7 +81,6 @@ main { padding:20px;}
   color:var(--accent); 
   font-size:26px;
 }
-
 
 /* ---------------- WATCHLIST ---------------- */
 #watchlistModal h2 { color:var(--accent); margin-bottom:15px;}
@@ -114,29 +108,7 @@ main { padding:20px;}
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
 }
-  .wa-small-btn {
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  background:#25D366;
-  color:#000;
-  padding:6px 10px;
-  border-radius:20px;
-  font-size:13px;
-  font-weight:600;
-  text-decoration:none;
-  border:1px solid #128C7E;
-  transition:0.2s ease-in-out;
-}
 
-.wa-small-btn:hover {
-  background:#1ebe5d;
-  transform:scale(1.05);
-}
-
-.wa-small-btn svg {
-  display:block;
-}
 .wa-small-btn {
   display:inline-flex;
   align-items:center;
@@ -151,16 +123,22 @@ main { padding:20px;}
   border:1px solid #128C7E;
   transition:0.2s ease-in-out;
 }
-
 .wa-small-btn:hover {
   background:#1ebe5d;
   transform:scale(1.05);
 }
+.wa-small-btn svg { display:block; }
 
-.wa-small-btn svg {
-  display:block;
+/* ============================================================
+   NETFLIX TV REMOTE FOCUS STYLE (NEW)
+   ============================================================ */
+.tv-focus {
+  outline:4px solid var(--accent);
+  outline-offset:4px;
+  transform:scale(1.08) !important;
+  z-index:5 !important;
+  transition:0.15s ease-in-out;
 }
-
 </style>
 
 
@@ -496,10 +474,110 @@ themeSelector.onchange = () => {
 
 </script>
 
+<script>
+// =========================
+// NETFLIX-STYLE TV NAVIGATION
+// =========================
+
+// Get all movie cards
+let cards = [];
+let focusedIndex = 0;
+
+// Add focus highlight class
+const focusClass = "tv-focus";
+
+// Add special focus glow style
+const style = document.createElement("style");
+style.innerHTML = `
+.${focusClass} {
+  outline:4px solid var(--accent);
+  outline-offset:4px;
+  transform:scale(1.08) !important;
+  z-index:5 !important;
+}
+`;
+document.head.appendChild(style);
+
+// Run once page loads
+window.addEventListener("load", () => {
+  cards = Array.from(document.querySelectorAll(".card"));
+  if(cards.length > 0) {
+    cards[0].classList.add(focusClass);
+    focusedIndex = 0;
+  }
+});
+
+// ----------------------
+// CHANGE FOCUS HANDLER
+// ----------------------
+function moveFocus(newIndex) {
+  if(!cards.length) return;
+  if(newIndex < 0 || newIndex >= cards.length) return;
+
+  cards[focusedIndex].classList.remove(focusClass);
+  focusedIndex = newIndex;
+  cards[focusedIndex].classList.add(focusClass);
+
+  // scroll card into view on TVs
+  cards[focusedIndex].scrollIntoView({
+    behavior:"smooth",
+    block:"nearest",
+    inline:"center"
+  });
+}
+
+// ----------------------
+// GRID POSITION CALCULATOR
+// ----------------------
+function getCardsPerRow() {
+  const firstCard = cards[0];
+  if(!firstCard) return 1;
+
+  const cardWidth = firstCard.offsetWidth + 20; // gap included
+  return Math.floor(window.innerWidth / cardWidth);
+}
+
+// ----------------------
+// REMOTE KEY EVENTS
+// ----------------------
+document.addEventListener("keydown", (e) => {
+  const rows = getCardsPerRow();
+
+  if(e.key === "ArrowRight") {
+    moveFocus(focusedIndex + 1);
+  }
+
+  else if(e.key === "ArrowLeft") {
+    moveFocus(focusedIndex - 1);
+  }
+
+  else if(e.key === "ArrowDown") {
+    moveFocus(focusedIndex + rows);
+  }
+
+  else if(e.key === "ArrowUp") {
+    moveFocus(focusedIndex - rows);
+  }
+
+  else if(e.key === "Enter") {
+    // simulate pressing WATCH button
+    const btn = cards[focusedIndex].querySelector("button");
+    if(btn) btn.click();
+  }
+
+  else if(e.key === "Backspace" || e.key === "Escape") {
+    const modal = document.getElementById("playerModal");
+    if(modal && modal.style.display === "flex") {
+      modal.style.display = "none";
+    }
+  }
+});
+</script>
 
 
 </body>
 </html>
+
 
 
 
