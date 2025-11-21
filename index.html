@@ -154,26 +154,28 @@ main { padding:20px;}
 .wa-small-btn svg {
   display:block;
 }
-/* ---------------- EPISODES - PROFESSIONAL / NETFLIX STYLE ---------------- */
+/* ---------------- EPISODES - PROFESSIONAL / NETFLIX VERTICAL STYLE ---------------- */
 .episode-section h4 {
   font-size: 1.2rem;
   color: var(--accent);
-  margin: 0 0 6px 0;
+  margin: 0 0 10px 0;
   font-weight: 600;
 }
 
+/* Change to vertical layout */
 .episode-list {
   display: flex;
-  flex-wrap: nowrap;           /* horizontal scroll style */
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 5px;
+  flex-direction: column;   /* vertical now */
+  gap: 12px;
+  max-height: 450px;        /* scroll vertically */
+  overflow-y: auto;
+  padding-right: 8px;
   scrollbar-width: thin;
   scrollbar-color: #00ff66 transparent;
 }
 
 .episode-list::-webkit-scrollbar {
-  height: 6px;
+  width: 6px;
 }
 
 .episode-list::-webkit-scrollbar-thumb {
@@ -185,28 +187,32 @@ main { padding:20px;}
   background: #111;
   color: #fff;
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border: 1px solid #333;
   cursor: pointer;
   font-size: 0.9rem;
-  flex: 0 0 auto;              /* keeps buttons compact */
   transition: transform 0.15s, outline 0.15s;
   display: flex;
-  flex-direction: column;
+  flex-direction: column;  /* vertical stack inside each episode */
   align-items: flex-start;
 }
 
 .episode-btn strong {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--accent);
   margin-bottom: 4px;
+}
+
+.episode-btn small {
+  color: #aaa;
+  font-size: 0.8rem;
 }
 
 .episode-btn:hover,
 .episode-btn:focus,
 .episode-btn.tv-focus {
   outline: 3px solid var(--accent);
-  transform: scale(1.05);
+  transform: scale(1.03);
   z-index: 5;
 }
 
@@ -751,6 +757,7 @@ document.addEventListener("keydown", (e) => {
 
 </body>
 </html>
+
 
 
 
