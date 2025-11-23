@@ -215,6 +215,61 @@ main { padding:20px;}
   transform: scale(1.03);
   z-index: 5;
 }
+.new-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: #ff0033;
+  color: white;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  border-radius: 4px;
+  z-index: 10;
+  box-shadow: 0 0 8px rgba(0,0,0,0.6);
+}
+@keyframes fadeOutBadge {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* SMALL NEW MOVIE GLOW BADGE (RESPONSIVE) */
+.movie-glow-badge {
+  position: absolute;
+  top: 0.4rem;          /* roughly 6px */
+  left: 0.4rem;
+  background: linear-gradient(90deg, #ff0080, #ff2d2d, #ff9900);
+  padding: 0.2rem 0.5rem; /* roughly 3px 8px */
+  color: white;
+  font-size: 0.75rem;      /* roughly 11px */
+  font-weight: 700;
+  border-radius: 0.25rem;  /* roughly 4px */
+  box-shadow: 0 0 0.35rem #ff0055, 0 0 0.75rem #ff2200;
+  animation: glowPulse 1.5s infinite alternate;
+  opacity: 1;
+  transition: opacity 1.5s ease-in-out;
+}
+
+@keyframes glowPulse {
+  from { box-shadow: 0 0 0.25rem #ff0055; }
+  to   { box-shadow: 0 0 0.75rem #ff2200; }
+}
+
+/* SMALL HOT BADGE (RESPONSIVE) */
+.hot-badge {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  background: #ff3b3b;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.75rem;
+  color: white;
+  font-weight: 800;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0.35rem #ff3b3b;
+}
+
 
 </style>
 
@@ -324,9 +379,9 @@ onSnapshot(collection(db, "movies"), async snapshot => {
       const q = query(episodesColl, orderBy("epNumber", "asc"));
       onSnapshot(q, snapshot => {
         m.episodes = snapshot.docs.map(d => ({
-          id: d.id,
-          ep: d.data().epNumber,
-          ...d.data()
+            id: d.id,
+            ep: d.data().epNumber,
+            ...d.data()
         })).sort((a,b) => (a.ep||0)-(b.ep||0));
         renderMovies(); // update UI when episodes change
       });
@@ -336,6 +391,7 @@ onSnapshot(collection(db, "movies"), async snapshot => {
   populateFilters();
   renderMovies();
 });
+
 
 // ---------------- FILTER OPTIONS ----------------
 function populateFilters() {
@@ -349,6 +405,8 @@ function populateFilters() {
   genreSet.forEach(g => genreFilter.innerHTML += `<option value="${g}">${g}</option>`);
   Array.from(yearSet).sort((a, b) => b - a).forEach(y => yearFilter.innerHTML += `<option value="${y}">${y}</option>`);
 }
+
+
 
 // ---------------- RENDER MOVIES ----------------
 function renderMovies() {
@@ -369,22 +427,100 @@ function renderMovies() {
 
   filtered.forEach((m, index) => {
     const ratingText = m.rating ? `${m.rating.toFixed(1)} / 10 (${Math.round(m.rating * 10)}%)` : "";
+
+
+    // ---------------- NEW SMART EPISODE BADGE ----------------
+    let newEpBadge = "";
+
+    if (m.type === "Series" && m.episodes.length > 0) {
+      const latestEp = m.episodes[m.episodes.length - 1];
+      const epNumber = latestEp.ep;
+      const season = latestEp.season || 1;
+
+      const now = Date.now();
+      const addedAt = latestEp.createdAt?.seconds
+        ? latestEp.createdAt.seconds * 1000
+        : latestEp.createdAt || now;
+
+      const isFresh = now - addedAt < 24 * 60 * 60 * 1000;
+      const notWatched = !hasWatched(m.id, epNumber);
+
+      if (isFresh && notWatched) {
+        newEpBadge = `
+          <div class="new-badge fade-out">
+            NEW Episode S${season}E${epNumber}
+          </div>`;
+      }
+    }
+
+
+
+    // ---------------- NEW MOVIE BADGE (GLOW + TIME AGO) ----------------
+    let newMovieBadge = "";
+
+    if (m.type !== "Series") {
+      const now = Date.now();
+      const addedAt = m.createdAt || 0;
+      const diff = now - addedAt;
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+
+      let timeText = "";
+      if (hours < 1) timeText = "Uploaded just now";
+      else if (hours < 24) timeText = `Uploaded ${hours}h ago`;
+      else timeText = "Today";
+
+      const isFreshMovie = diff < 24 * 60 * 60 * 1000;
+
+      if (isFreshMovie) {
+        newMovieBadge = `
+          <div class="movie-glow-badge fade-out">
+             ${timeText}
+          </div>`;
+      }
+    }
+
+
+
+    // ---------------- HOT BADGE (Based on views) ----------------
+    // Customize threshold here:
+    const HOT_THRESHOLD = 1000; // example: 1000 views
+    let hotBadge = "";
+
+    if (m.views && m.views >= HOT_THRESHOLD) {
+      hotBadge = `
+        <div class="hot-badge">
+          🔥 HOT
+        </div>`;
+    }
+
+
+    // ---------------- MOVIE CARD ----------------
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <img class="poster" src="${m.poster}" alt="${m.title}">
+      <div class="poster-wrapper">
+        ${newMovieBadge}
+        ${hotBadge}
+        ${newEpBadge}
+
+        <img class="poster" src="${m.poster}" alt="${m.title}">
+      </div>
+
       <div class="card-body">
         <h3 class="movie-title">${m.title}</h3>
         <div class="meta">${m.year} · ${(m.genres || []).join(", ")}</div>
         <div class="rating">${ratingText}</div>
+
         <div class="card-actions">
           <button class="btn" onclick="viewDetailsByFiltered(${index})">Details</button>
           <button class="btn" onclick="addToWatchlistByFiltered(${index})">Add to List</button>
           <button class="btn" onclick="watchTrailerByFiltered(${index})">Watch</button>
         </div>
       </div>`;
+
     grid.appendChild(card);
   });
+
   window.currentFiltered = filtered;
 }
 
@@ -757,6 +893,7 @@ document.addEventListener("keydown", (e) => {
 
 </body>
 </html>
+
 
 
 
