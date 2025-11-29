@@ -489,20 +489,15 @@ function renderMovies() {
   filtered.forEach((m, index) => {
     const ratingText = m.rating ? `${m.rating.toFixed(1)} / 10 (${Math.round(m.rating * 10)}%)` : "";
 
-
-    // ---------------- NEW SMART EPISODE BADGE ----------------
     let newEpBadge = "";
-
     if (m.type === "Series" && m.episodes.length > 0) {
       const latestEp = m.episodes[m.episodes.length - 1];
       const epNumber = latestEp.ep;
       const season = latestEp.season || 1;
-
       const now = Date.now();
       const addedAt = latestEp.createdAt?.seconds
         ? latestEp.createdAt.seconds * 1000
         : latestEp.createdAt || now;
-
       const isFresh = now - addedAt < 24 * 60 * 60 * 1000;
       const notWatched = !hasWatched(m.id, epNumber);
 
@@ -514,46 +509,23 @@ function renderMovies() {
       }
     }
 
-
-
-    // ---------------- NEW MOVIE BADGE (GLOW + TIME AGO) ----------------
     let newMovieBadge = "";
-
     if (m.type !== "Series") {
       const now = Date.now();
-      const addedAt = m.createdAt || 0;
-      const diff = now - addedAt;
+      const diff = now - m.createdAt;
       const hours = Math.floor(diff / (1000 * 60 * 60));
+      let timeText =
+        hours < 1 ? "Uploaded just now"
+        : hours < 24 ? `Uploaded ${hours}h ago`
+        : "Today";
 
-      let timeText = "";
-      if (hours < 1) timeText = "Uploaded just now";
-      else if (hours < 24) timeText = `Uploaded ${hours}h ago`;
-      else timeText = "Today";
-
-      const isFreshMovie = diff < 24 * 60 * 60 * 1000;
-
-      if (isFreshMovie) {
-        newMovieBadge = `
-          <div class="movie-glow-badge fade-out">
-             ${timeText}
-          </div>`;
+      if (diff < 24 * 60 * 60 * 1000) {
+        newMovieBadge = `<div class="movie-glow-badge fade-out">${timeText}</div>`;
       }
     }
 
-
-
-    // ---------------- HOT BADGE (Based on views) ----------------
-    // Customize threshold here:
-    const HOT_THRESHOLD = 1000; // example: 1000 views
-    let hotBadge = "";
-
-    if (m.views && m.views >= HOT_THRESHOLD) {
-      hotBadge = `
-        <div class="hot-badge">
-          🔥 HOT
-        </div>`;
-    }
-
+    const HOT_THRESHOLD = 1000;
+    let hotBadge = m.views >= HOT_THRESHOLD ? `<div class="hot-badge">🔥 HOT</div>` : "";
 
     // ---------------- MOVIE CARD ----------------
     const card = document.createElement("div");
@@ -563,21 +535,23 @@ function renderMovies() {
         ${newMovieBadge}
         ${hotBadge}
         ${newEpBadge}
-
         <img class="poster" src="${m.poster}" alt="${m.title}">
       </div>
-
       <div class="card-body">
         <h3 class="movie-title">${m.title}</h3>
         <div class="meta">${m.year} · ${(m.genres || []).join(", ")}</div>
         <div class="rating">${ratingText}</div>
-
         <div class="card-actions">
-          <button class="btn" onclick="viewDetailsByFiltered(${index})">Details</button>
-          <button class="btn" onclick="addToWatchlistByFiltered(${index})">Add to List</button>
-          <button class="btn" onclick="watchTrailerByFiltered(${index})">Watch</button>
+          <button class="btn" onclick="event.stopPropagation(); viewDetailsByFiltered(${index})">Details</button>
+          <button class="btn" onclick="event.stopPropagation(); addToWatchlistByFiltered(${index})">Add to List</button>
+          <button class="btn" onclick="event.stopPropagation(); watchTrailerByFiltered(${index})">Watch</button>
         </div>
       </div>`;
+
+    // ⭐⭐⭐ MAKE FULL CARD CLICKABLE ⭐⭐⭐
+    card.addEventListener("click", () => {
+      viewDetailsByFiltered(index);
+    });
 
     grid.appendChild(card);
   });
@@ -974,19 +948,3 @@ document.addEventListener("keydown", (e) => {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
