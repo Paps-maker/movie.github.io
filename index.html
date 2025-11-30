@@ -432,6 +432,7 @@ function renderMovies() {
   const selectedYear = yearFilter.value;
   const selectedType = document.getElementById("typeFilter").value;
   grid.innerHTML = "";
+
   const filtered = movies.filter(m => {
     const matchesSearch = (m.title||'').toLowerCase().includes(searchText);
     const matchesGenre = !selectedGenre || (m.genres && m.genres.includes(selectedGenre));
@@ -440,40 +441,98 @@ function renderMovies() {
     return matchesSearch && matchesGenre && matchesYear && matchesType;
   });
 
+  const now = Date.now(); // needed for badge timing
+
   filtered.forEach((m, index) => {
+
+    // -------------------- BADGES --------------------
+    let badgesHTML = "";
+
+    // NEW MOVIE (< 24h)
+    if (m.type !== "Series" && now - (m.createdAt || 0) < 24 * 60 * 60 * 1000) {
+      badgesHTML += `
+        <div class="movie-glow-badge fade-out-24h">NEW MOVIE</div>
+      `;
+    }
+
+    // HOT (views ≥ 1000)
+    if (m.views && m.views >= 1000) {
+      badgesHTML += `
+        <div class="hot-badge">HOT</div>
+      `;
+    }
+
+    // NEW EPISODE for series
+    if (m.type === "Series" && m.episodes && m.episodes.length > 0) {
+      const latest = m.episodes[m.episodes.length - 1];
+      const addedAt = latest.createdAt || now;
+      const isFresh = (now - addedAt) < 24 * 60 * 60 * 1000;
+      const ep = latest.ep || 0;
+      const season = latest.season || 1;
+      const notWatched = !hasWatched(m.id, ep);
+
+      if (isFresh && notWatched) {
+        badgesHTML += `
+          <div class="new-badge fade-out-24h">NEW Episode S${season}E${ep}</div>
+        `;
+      }
+
+      if (m.episodes.some(epObj => now - (epObj.createdAt || now) < 24 * 60 * 60 * 1000)) {
+        badgesHTML += `
+          <div class="new-episode-added fade-out-24h"></div>
+        `;
+      }
+    }
+    // ------------------------------------------------
+
     const ratingText = m.rating ? `${m.rating.toFixed(1)} / 10 (${Math.round(m.rating*10)}%)` : "";
     const card = document.createElement("div");
     card.className = "card";
+
     card.innerHTML = `
-      <img class="poster" src="${m.poster||''}" alt="${(m.title||'').replace(/"/g,'&quot;')}">
+      <div class="poster-wrapper" style="position:relative;">
+        <div class="badges-container">${badgesHTML}</div>
+
+        <img class="poster" src="${m.poster||''}" alt="${(m.title||'').replace(/"/g,'&quot;')}">
+      </div>
+
       <div class="card-body">
         <h3 class="movie-title">${(m.title||'').replace(/</g,'&lt;')}</h3>
         <div class="meta">${m.year || ''} · ${(m.genres||[]).join(", ")}</div>
         <div class="rating">${ratingText}</div>
+
         <div class="card-actions">
+
           <button class="btn-icon" title="Details" onclick="protectedAction('details', ${index})">
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00ff66" viewBox="0 0 24 24">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
-             10-4.48 10-10S17.52 2 12 2zm0 3c.83 0 1.5.67
-             1.5 1.5S12.83 8 12 8s-1.5-.67-1.5-1.5S11.17 5 12 5zm2 12h-4v-2h1v-4h-1v-2h3v6h1v2z"/>
-  </svg>
-</button>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00ff66" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
+                       10-4.48 10-10S17.52 2 12 2zm0 3c.83 0 1.5.67
+                       1.5 1.5S12.83 8 12 8s-1.5-.67-1.5-1.5S11.17 5 12 5zm2 12h-4v-2h1v-4h-1v-2h3v6h1v2z"/>
+            </svg>
+          </button>
 
-<button class="btn-icon" title="Add to Watchlist" onclick="event.stopPropagation(); protectedAction('add', ${index})">
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00ff66" viewBox="0 0 24 24">
-    <path d="M19 3H5c-1.1 0-2 .9-2 2v14l8-3 8 3V5c0-1.1-.9-2-2-2zM12 10v4h-2v-4H8v-2h2V6h2v2h2v2h-2z"/>
-  </svg>
-</button>
+          <button class="btn-icon" title="Add to Watchlist" onclick="event.stopPropagation(); protectedAction('add', ${index})">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00ff66" viewBox="0 0 24 24">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14l8-3 8 3V5
+                       c0-1.1-.9-2-2-2zM12 10v4h-2v-4H8v-2h2V6h2v2h2v2h-2z"/>
+            </svg>
+          </button>
 
-<button class="btn-icon" title="Watch Movie" onclick="protectedAction('watch', ${index})">
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00ff66" viewBox="0 0 24 24">
-    <path d="M10 8.64L15.27 12 10 15.36V8.64M12 2C6.5 2 2 6.5
-             2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/>
-  </svg>
-</button>
+          <button class="btn-icon" title="Watch Movie" onclick="protectedAction('watch', ${index})">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00ff66" viewBox="0 0 24 24">
+              <path d="M10 8.64L15.27 12 10 15.36V8.64M12 2C6.5 2 
+                       2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/>
+            </svg>
+          </button>
 
         </div>
       </div>`;
+
+    // ✔ Click poster to watch
+    const poster = card.querySelector(".poster");
+    poster.style.cursor = "pointer";
+    poster.addEventListener("click", () => protectedAction("watch", index));
+
     grid.appendChild(card);
   });
 
@@ -859,5 +918,6 @@ window.viewAndPlayByFiltered = function(index){
 
 </body>
 </html>
+
 
 
