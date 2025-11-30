@@ -445,20 +445,123 @@ a.download-link:hover,
 <div class="modal" id="authModal">
   <div class="modal-content">
     <span class="close" onclick="closeModal('authModal')">&times;</span>
-    <h2 id="authTitle">Sign in</h2>
-    <div style="display:flex;gap:8px;flex-direction:column;max-width:420px;">
+    <h2 id="authTitle">Sign In</h2>
+    <div class="auth-form">
       <input id="authIdentifier" placeholder="Email or Username" type="text">
       <input id="authPassword" placeholder="Password (6+ chars)" type="password">
-      <div style="display:flex;gap:8px;">
+      <div class="auth-buttons">
         <button id="signInBtn" class="btn">Sign In</button>
-        <button id="registerBtn" class="btn"></button>
+        <button id="registerBtn" class="btn">Register</button>
       </div>
-      <div style="color:var(--muted);font-size:13px;margin-top:8px;">
-        If you have no account contact our team to be registered.
+      <div class="auth-note">
+        If you have no account, contact our team to be registered.
       </div>
     </div>
   </div>
 </div>
+
+<style>
+/* Modal Background */
+.modal {
+  display: none; /* hidden by default */
+  position: fixed;
+  z-index: 999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.6);
+  backdrop-filter: blur(3px);
+  transition: opacity 0.3s ease;
+}
+
+/* Modal Content Box */
+.modal-content {
+  background-color: #111;
+  margin: 8% auto;
+  padding: 24px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  position: relative;
+  color: #eee;
+  font-family: 'Segoe UI', sans-serif;
+  animation: slideDown 0.3s ease;
+}
+
+/* Close Button */
+.close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #ccc;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.close:hover { color: #fff; }
+
+/* Modal Heading */
+.modal-content h2 {
+  margin-bottom: 20px;
+  color: #00ff66;
+  text-align: center;
+}
+
+/* Form Inputs */
+.auth-form input {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background-color: #222;
+  color: #eee;
+  font-size: 15px;
+  outline: none;
+  transition: border 0.2s, background 0.2s;
+}
+.auth-form input:focus {
+  border-color: #00ff66;
+  background-color: #1a1a1a;
+}
+
+/* Buttons */
+.auth-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.auth-buttons .btn {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  background: #00ff66;
+  color: #111;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.auth-buttons .btn:hover {
+  background: #33ff88;
+}
+
+/* Note */
+.auth-note {
+  color: #aaa;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Animation */
+@keyframes slideDown {
+  0% { transform: translateY(-30px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+</style>
+
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
@@ -1049,6 +1152,7 @@ window.viewAndPlayByFiltered = function(index){
 
 </body>
 </html>
+
 
 
 
