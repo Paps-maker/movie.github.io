@@ -387,90 +387,7 @@ main { padding:20px;}
   transform: scale(1.2);
   filter: drop-shadow(0 0 6px #00ff66);
 }
-/* Premium Modal Styling */
-.premium-modal {
-  display: none;
-  position: fixed;
-  z-index: 99999;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(4px);
-  justify-content: center;
-  align-items: center;
-}
-
-.premium-content {
-  background: #111;
-  color: #fff;
-  padding: 25px;
-  width: 85%;
-  max-width: 400px;
-  border-radius: 15px;
-  text-align: center;
-  border: 1px solid #00ff66;
-  box-shadow: 0 0 25px rgba(0,255,100,0.4);
-  animation: pop 0.4s ease;
-}
-
-@keyframes pop {
-  0% { transform: scale(0.7); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.premium-content h2 {
-  margin-bottom: 12px;
-  font-size: 22px;
-}
-
-.premium-content p {
-  color: #ccc;
-  font-size: 15px;
-}
-
-.highlight {
-  color: #00ff66;
-  font-weight: bold;
-}
-
-#getPremiumBtn {
-  width: 100%;
-  padding: 12px;
-  background: #00ff66;
-  border: none;
-  color: #000;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 15px;
-}
-
-.close-btn {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px;
-  background: transparent;
-  border: 1px solid #666;
-  border-radius: 10px;
-  color: #ccc;
-  cursor: pointer;
-}
-
 </style>
-<!-- Premium End Modal -->
-<div id="premiumModal" class="premium-modal">
-  <div class="premium-content">
-    <h2>🎬 Black November Free Watch Ended</h2>
-    <p>Your free access has officially ended.  
-    You can now upgrade to <strong>Premium</strong> for only <span class="highlight">KSh 150</span> and continue watching without limits.</p>
-
-    <button id="getPremiumBtn">Get Premium</button>
-    <button id="closeModalBtn" class="close-btn">Not Now</button>
-  </div>
-</div>
 
 </head>
 <body>
@@ -990,7 +907,8 @@ function showGuestModal(actionHint='') {
   const h = new Date(); let greet='Hello';
   if (h.getHours()<12) greet='Good morning'; else if (h.getHours()<18) greet='Good afternoon'; else greet='Good evening';
   if (guestGreeting) guestGreeting.innerText = `${greet}, Guest!`;
-  if (guestMessage) guestMessage.innerHTML = `You're browsing in <strong>Guest mode</strong>. To use ${actionHint ? `<strong>${actionHint}</strong>` : 'premium features'} subscribe.<br><br>Subscription: <strong>150 KSh / month</strong>. Contact our team.`;
+  if (guestMessage) guestMessage.innerHTML = `Black November Free Watch Ended
+Your free access has officially ended. You can now upgrade to Premium for only KSh 150 and continue watching without limits.You're browsing in <strong>Guest mode</strong>. To use ${actionHint ? `<strong>${actionHint}</strong>` : 'premium features'} subscribe.<br><br>Subscription: <strong>150 KSh / month</strong>. Contact our team.`;
   const phone = '+254790427109';
   if (waLink) waLink.href = `https://wa.me/${phone.replace(/\D/g,'')}?text=${encodeURIComponent('Hi, I want a MovieDrift premium account')}`;
   if (callLink) callLink.href = `tel:${phone}`;
@@ -1482,27 +1400,6 @@ document.addEventListener("keydown", (e) => {
     }
   }
 });
-</script>
-<script>
-// Show modal function
-function showPremiumModal() {
-  document.getElementById("premiumModal").style.display = "flex";
-}
-
-// Close button
-document.getElementById("closeModalBtn").onclick = function() {
-  document.getElementById("premiumModal").style.display = "none";
-};
-
-// WhatsApp redirect
-document.getElementById("getPremiumBtn").onclick = function() {
-  window.location.href = "https://wa.me/254790427109?text=Hello,%20I%20want%20to%20buy%20the%20MovieDrift%20Premium%20Subscription%20for%20KSh150.";
-};
-
-// Auto-open modal (optional)
-window.onload = () => {
-  setTimeout(showPremiumModal, 1500); // opens after 1.5 seconds
-};
 </script>
 
 
