@@ -472,7 +472,7 @@ main { padding:20px;}
     <span class="close" onclick="closeModal('authModal')">&times;</span>
     <h2 id="authTitle">Sign in</h2>
     <div style="display:flex;gap:8px;flex-direction:column;max-width:420px;">
-      <input id="authIdentifier" placeholder="Email or Username" type="text">
+      <input id="authIdentifier" placeholder="Email " type="text">
       <input id="authPassword" placeholder="Password (6+ chars)" type="password">
       <div style="display:flex;gap:8px;">
         <button id="signInBtn" class="btn">Sign In</button>
@@ -499,6 +499,7 @@ import {
   doc,
   onSnapshot,
   query,
+  limit,
   where,
   getDocs,
   addDoc,
@@ -603,7 +604,7 @@ function isDownloadable(url) {
   return /\.(mp4|mkv|mov|wmv|avi|flv|webm)$/i.test(url);
 }
 
-/* ---------------- AUTH (Script1 register/login + guest) ---------------- */
+/* ---------------- AUTH (Email-only register/login + guest) ---------------- */
 
 // OPTIONAL: small loader that does NOT affect your script logic
 function showLoader() {
@@ -615,156 +616,123 @@ function hideLoader() {
   if (el) el.style.display = "none";
 }
 
-async function loginUser(identifier, password) {
-  showLoader();
+// LOGIN
+async function loginUser(email, password) {
+  if (!email || !password) { alert("Enter email & password"); return; }
 
+  showLoader();
   try {
     const usersRef = collection(db, "users");
-
-    // First query: email
-    let q = query(usersRef, where("email", "==", identifier));
-
-    // Add timeout so slow devices do not freeze
-    let snapshot = await Promise.race([
+    const q = query(usersRef, where("email", "==", email), limit(1)); // fetch only 1
+    const snapshot = await Promise.race([
       getDocs(q),
       new Promise((_, reject) => setTimeout(() => reject("timeout"), 7000))
     ]);
 
     if (snapshot === "timeout") {
-      hideLoader();
       alert("Network too slow. Try again.");
       return;
     }
 
-    // If no email found → check username
     if (snapshot.empty) {
-      q = query(usersRef, where("username", "==", identifier));
-
-      snapshot = await Promise.race([
-        getDocs(q),
-        new Promise((_, reject) => setTimeout(() => reject("timeout"), 7000))
-      ]);
-
-      if (snapshot === "timeout") {
-        hideLoader();
-        alert("Network too slow. Try again.");
-        return;
-      }
-
-      if (snapshot.empty) {
-        hideLoader();
-        alert("User not found");
-        return;
-      }
+      alert("User not found");
+      return;
     }
 
     const userDoc = snapshot.docs[0];
     const user = userDoc.data();
 
-    // SAME original password check
     if (user.password === password) {
-      currentUser = { id: userDoc.id, ...user };
+      currentUser = { id: userDoc.id, email: user.email, status: user.status || "Paid" };
       saveCurrentUser();
       watchUserStatus();
-      alert("Logged in successfully");
       updateAuthUI();
       closeModal('authModal');
+      alert("Logged in successfully");
 
-      // Avoid freezing weak devices by delaying heavy UI updates
-      setTimeout(() => renderMovies(), 200);
-
+      // Render movies AFTER login completes
+      await renderMovies(); 
     } else {
       alert("Incorrect password");
     }
 
   } catch (err) {
     alert("Login error: " + err);
+  } finally {
+    hideLoader();
   }
-
-  hideLoader();
 }
 
+// REGISTER
+async function registerUser(email, password) {
+  if (!email || !password) { alert("Enter email & password"); return; }
+  if (password.length < 6) { alert("Password must be 6+ chars"); return; }
 
-async function registerUser(identifier, password) {
   showLoader();
-
   try {
-    if (password.length < 6) {
-      hideLoader();
-      alert("Password must be 6+ chars");
-      return;
-    }
-
     const usersRef = collection(db, "users");
-
-    // SAME original check (email only)
-    let q = query(usersRef, where("email", "==", identifier));
-
-    let snapshot = await Promise.race([
+    const q = query(usersRef, where("email", "==", email), limit(1));
+    const snapshot = await Promise.race([
       getDocs(q),
       new Promise((_, reject) => setTimeout(() => reject("timeout"), 7000))
     ]);
 
     if (snapshot === "timeout") {
-      hideLoader();
       alert("Network too slow. Try again.");
       return;
     }
 
     if (!snapshot.empty) {
-      hideLoader();
       alert("User already exists");
       return;
     }
 
-    // SAME original data inserted
     const docRef = await addDoc(usersRef, {
-      email: identifier,
-      password: password,
+      email,
+      password,
       createdAt: Date.now(),
       status: "Paid"
     });
 
-    currentUser = { id: docRef.id, email: identifier, status: "Paid" };
+    currentUser = { id: docRef.id, email, status: "Paid" };
     saveCurrentUser();
     watchUserStatus();
-    alert("Account created & logged in");
     updateAuthUI();
     closeModal('authModal');
+    alert("Account created & logged in");
 
-    // prevent UI freeze
-    setTimeout(() => renderMovies(), 200);
+    // Render movies AFTER registration completes
+    await renderMovies();
 
   } catch (err) {
     alert("Registration error: " + err);
+  } finally {
+    hideLoader();
   }
-
-  hideLoader();
 }
 
-/* Simple user status watcher to update local state if Firestore user doc changes */
+/* Simple user status watcher */
 function watchUserStatus() {
   if (!currentUser) return;
   const userDocRef = doc(db, "users", currentUser.id);
-  // subscribe once (keeps reference minimal)
-  const unsub = onSnapshot(userDocRef, docSnap => {
+  onSnapshot(userDocRef, docSnap => {
     if (docSnap.exists()) {
       const data = docSnap.data();
       currentUser.status = data.status || currentUser.status || "Unpaid";
       saveCurrentUser();
     }
   });
-  // no explicit unsubscribe here — will persist for session (could store if desired)
 }
 
-/* Guest login (Script2) */
-function loginGuest() {
+/* Guest login */
+async function loginGuest() {
   currentUser = { name: "Guest", guest: true, id: Date.now(), status: "Guest" };
   saveCurrentUser();
   updateAuthUI();
   alert("Logged in as Guest");
-  renderMovies();
+  await renderMovies();
 }
+
 function logout() {
   currentUser = null;
   saveCurrentUser();
@@ -772,7 +740,7 @@ function logout() {
   renderMovies();
 }
 
-/* UI bindings for auth */
+/* UI bindings */
 if (signInBtn) signInBtn.onclick = () => loginUser(authIdentifier.value.trim(), authPassword.value);
 if (registerBtn) registerBtn.onclick = () => registerUser(authIdentifier.value.trim(), authPassword.value);
 if (openAuthBtn) openAuthBtn.onclick = () => openAuthModal();
@@ -781,8 +749,13 @@ if (logoutBtn) logoutBtn.onclick = () => logout();
 
 function updateAuthUI() {
   if (!openAuthBtn || !logoutBtn) return;
-  if (currentUser) { openAuthBtn.style.display = 'none'; logoutBtn.style.display = 'inline-block'; }
-  else { openAuthBtn.style.display = 'inline-block'; logoutBtn.style.display = 'none'; }
+  if (currentUser) { 
+    openAuthBtn.style.display = 'none'; 
+    logoutBtn.style.display = 'inline-block'; 
+  } else { 
+    openAuthBtn.style.display = 'inline-block'; 
+    logoutBtn.style.display = 'none'; 
+  }
 }
 
 /* ---------------- LOAD MOVIES + EPISODES (Realtime) ---------------- */
