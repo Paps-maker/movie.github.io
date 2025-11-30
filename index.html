@@ -249,6 +249,125 @@ a.download-link:hover,
 .btn-icon svg {
   pointer-events: none;
 }
+.new-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: #ff0033;
+  color: white;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  border-radius: 4px;
+  z-index: 10;
+  box-shadow: 0 0 8px rgba(0,0,0,0.6);
+}
+@keyframes fadeOutBadge {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* SMALL NEW MOVIE GLOW BADGE (RESPONSIVE) */
+.movie-glow-badge {
+  position: absolute;
+  top: 0.4rem;          /* roughly 6px */
+  left: 0.4rem;
+  background: linear-gradient(90deg, #ff0080, #ff2d2d, #ff9900);
+  padding: 0.2rem 0.5rem; /* roughly 3px 8px */
+  color: white;
+  font-size: 0.75rem;      /* roughly 11px */
+  font-weight: 700;
+  border-radius: 0.25rem;  /* roughly 4px */
+  box-shadow: 0 0 0.35rem #ff0055, 0 0 0.75rem #ff2200;
+  animation: glowPulse 1.5s infinite alternate;
+  opacity: 1;
+  transition: opacity 1.5s ease-in-out;
+}
+
+@keyframes glowPulse {
+  from { box-shadow: 0 0 0.25rem #ff0055; }
+  to   { box-shadow: 0 0 0.75rem #ff2200; }
+}
+
+/* SMALL HOT BADGE (RESPONSIVE) */
+.hot-badge {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  background: #ff3b3b;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.75rem;
+  color: white;
+  font-weight: 800;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0.35rem #ff3b3b;
+}
+
+/* ===============================
+   MODAL CALL + WHATSAPP BUTTONS
+   =============================== */
+
+.guest-cta {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.guest-cta a,
+.guest-cta button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: 0.2s ease;
+}
+
+/* WhatsApp */
+.wa-btn {
+  background: #25D366;
+  color: #fff;
+}
+.wa-btn:hover {
+  background: #1ebe5a;
+  transform: translateY(-1px);
+}
+
+/* Call */
+.call-btn {
+  background: #0aa0ff;
+  color: #fff;
+}
+.call-btn:hover {
+  background: #0288d1;
+  transform: translateY(-1px);
+}
+
+/* Movie Drift button (keeps your theme) */
+.guest-cta .btn {
+  background: var(--accent);
+  color: #000;
+}
+.guest-cta .btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.btn-icon svg {
+  pointer-events: none;
+}
 
 </style>
 </head>
@@ -685,7 +804,18 @@ function watchEpisodes(movieId) {
   const episodesColl = collection(db, "movies", movieId, "episodes");
   const q = query(episodesColl);
   return onSnapshot(q, snapshot => {
-    const episodes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    let episodes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Sort episodes by season then episode number
+    episodes.sort((a, b) => {
+      const seasonA = a.season || 1;
+      const seasonB = b.season || 1;
+      const epA = a.epNumber || a.ep || 1;
+      const epB = b.epNumber || b.ep || 1;
+      if (seasonA !== seasonB) return seasonA - seasonB;
+      return epA - epB;
+    });
+
     const episodeList = document.getElementById("episodeList");
     episodeList.innerHTML = `<h4>Episodes</h4><div class="episode-list"></div>`;
     const epContainer = episodeList.querySelector(".episode-list");
@@ -696,7 +826,7 @@ function watchEpisodes(movieId) {
 
       const epDiv = document.createElement("div");
       epDiv.style = "border:1px solid #333;padding:10px;margin-top:8px;border-radius:6px;";
-      epDiv.innerHTML = `<strong>Episode ${ep.epNumber || ""}: ${ep.title || ""}</strong>
+      epDiv.innerHTML = `<strong>Episode ${ep.epNumber || ep.ep || ""}: ${ep.title || ""}</strong>
                          ${ep.description ? `<br><small>${ep.description}</small>` : ""}`;
 
       epDiv.addEventListener("click", () => {
@@ -740,6 +870,7 @@ function watchEpisodes(movieId) {
     });
   });
 }
+
 
 
 /* ---------------- VIEW DETAILS ---------------- */
@@ -918,6 +1049,7 @@ window.viewAndPlayByFiltered = function(index){
 
 </body>
 </html>
+
 
 
 
