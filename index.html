@@ -372,7 +372,7 @@ main { padding:20px;}
 }
 
 .btn-icon svg {
-  pointer-events: none; /* ensures clicks go to the button */
+  pointer-events: none;
 }
 
 </style>
@@ -760,107 +760,52 @@ function renderMovies() {
       const isFresh = (now - addedAt) < 24 * 60 * 60 * 1000;
       const notWatched = !hasWatched(m.id, ep);
       if (isFresh && notWatched) badgesHTML += `<div class="new-badge fade-out-24h">NEW Episode S${season}E${ep}</div>`;
+      // also show "NEW Episode Added" if any ep added last 24h
       if (m.episodes.some(epObj => now - (epObj.createdAt || now) < 24 * 60 * 60 * 1000)) {
         badgesHTML += `<div class="new-episode-added fade-out-24h"></div>`;
       }
     }
 
-    // build card DOM (no inline onclick)
     const card = document.createElement("div");
     card.className = "card";
-
-    // poster wrapper (badges + img)
-    const posterWrapper = document.createElement("div");
-    posterWrapper.className = "poster-wrapper";
-    posterWrapper.style.position = "relative";
-    posterWrapper.innerHTML = `${badgesHTML}<img class="poster" src="${m.poster || ''}" alt="${(m.title || '').replace(/"/g,'&quot;')}">`;
-
-    // card body
-    const cardBody = document.createElement("div");
-    cardBody.className = "card-body";
-
-    const title = document.createElement("h3");
-    title.className = "movie-title";
-    title.innerHTML = (m.title||'').replace(/</g,'&lt;');
-
-    const meta = document.createElement("div");
-    meta.className = "meta";
-    meta.textContent = `${m.year || ''} · ${(m.genres||[]).join(", ")}`;
-
-    const rating = document.createElement("div");
-    rating.className = "rating";
-    rating.textContent = ratingText;
-
-    const actions = document.createElement("div");
-    actions.className = "card-actions";
-
-   // ---------------- FIXED BUTTONS WITH GREEN ICONS ----------------
-
-// Details button (info icon)
-const btnDetails = document.createElement("button");
-btnDetails.className = "btn-icon";
-btnDetails.innerHTML = `
+    card.innerHTML = `
+      <div class="poster-wrapper" style="position:relative;">
+        ${badgesHTML}
+        <img class="poster" src="${m.poster || ''}" alt="${(m.title || '').replace(/"/g,'&quot;')}">
+      </div>
+      <div class="card-body">
+        <h3 class="movie-title">${(m.title||'').replace(/</g,'&lt;')}</h3>
+        <div class="meta">${m.year || ''} · ${(m.genres||[]).join(", ")}</div>
+        <div class="rating">${ratingText}</div>
+        <div class="card-actions">
+         <button class="btn-icon" title="Details" onclick="protectedAction('details', ${index})">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00ff66" viewBox="0 0 24 24">
     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
              10-4.48 10-10S17.52 2 12 2zm0 3c.83 0 1.5.67
              1.5 1.5S12.83 8 12 8s-1.5-.67-1.5-1.5S11.17 5 12 5zm2 12h-4v-2h1v-4h-1v-2h3v6h1v2z"/>
-  </svg>`;
-btnDetails.title = "View Details";
-btnDetails.addEventListener("click", () => protectedAction('details', index));
+  </svg>
+</button>
 
-
-// Add to list button (plus icon)
-const btnAdd = document.createElement("button");
-btnAdd.className = "btn-icon";
-btnAdd.innerHTML = `
+<button class="btn-icon" title="Add to Watchlist" onclick="event.stopPropagation(); protectedAction('add', ${index})">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00ff66" viewBox="0 0 24 24">
     <path d="M19 3H5c-1.1 0-2 .9-2 2v14l8-3 8 3V5c0-1.1-.9-2-2-2zM12 10v4h-2v-4H8v-2h2V6h2v2h2v2h-2z"/>
-  </svg>`;
-btnAdd.title = "Add to Watchlist";
-btnAdd.addEventListener("click", (e) => {
-    e.stopPropagation();
-    protectedAction('add', index);
-});
+  </svg>
+</button>
 
-
-// Watch button (play icon)
-const btnWatch = document.createElement("button");
-btnWatch.className = "btn-icon";
-btnWatch.innerHTML = `
+<button class="btn-icon" title="Watch Movie" onclick="protectedAction('watch', ${index})">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#00ff66" viewBox="0 0 24 24">
     <path d="M10 8.64L15.27 12 10 15.36V8.64M12 2C6.5 2 2 6.5
              2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/>
-  </svg>`;
-btnWatch.title = "Watch Movie";
-btnWatch.addEventListener("click", () => protectedAction('watch', index));
+  </svg>
+</button>
 
-
-// Append
-actions.appendChild(btnDetails);
-actions.appendChild(btnAdd);
-actions.appendChild(btnWatch);
-
-    // append body elements
-    cardBody.appendChild(title);
-    cardBody.appendChild(meta);
-    cardBody.appendChild(rating);
-    cardBody.appendChild(actions);
-
-    // append card sections
-    card.appendChild(posterWrapper);
-    card.appendChild(cardBody);
-
-    // Make poster clickable -> triggers same as watch
-    const posterImg = posterWrapper.querySelector(".poster");
-    if (posterImg) {
-      posterImg.style.cursor = "pointer";
-      posterImg.addEventListener("click", () => protectedAction('watch', index));
-    }
-
+        </div>
+      </div>`;
     grid.appendChild(card);
   });
 
   window.currentFiltered = filtered;
+  
 }
 
 /* ---------------- Protected action (checks subscription) ---------------- */
