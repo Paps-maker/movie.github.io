@@ -368,38 +368,256 @@ a.download-link:hover,
 .btn-icon svg {
   pointer-events: none;
 }
+/* ===========================
+   MOVIEDRIFT PREMIUM UI CSS
+   =========================== */
+
+/* COLORS */
+:root {
+  --bg:#000;
+  --card-bg:#0d0d0d;
+  --accent:#00ff66;
+  --accent-dark:#00cc55;
+  --text:#ddd;
+  --muted:#888;
+}
+
+/* ===========================
+      HEADER AREA
+   =========================== */
+.md-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 20px;
+  background:var(--bg);
+  border-bottom:1px solid #0f0f0f;
+  position:sticky;
+  top:0;
+  z-index:999;
+}
+
+/* Left Area */
+.left-area {
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+/* Logo */
+.logo {
+  font-size:1.6rem;
+  font-weight:800;
+  letter-spacing:-0.5px;
+  color:var(--accent);
+  text-transform:uppercase;
+}
+
+/* ===========================
+      MENU (DESKTOP)
+   =========================== */
+.md-menu {
+  display:flex;
+  align-items:center;
+  gap:20px;
+}
+
+.md-menu a {
+  color:var(--text);
+  text-decoration:none;
+  font-size:1rem;
+  font-weight:500;
+  padding:6px 10px;
+  transition:0.3s;
+}
+
+.md-menu a:hover {
+  color:var(--accent);
+  transform:translateY(-2px);
+}
+
+/* ===========================
+      MOBILE MENU TOGGLE
+   =========================== */
+.menu-toggle {
+  display:none;
+  flex-direction:column;
+  justify-content:space-between;
+  width:30px;
+  height:22px;
+  cursor:pointer;
+}
+
+.menu-toggle span {
+  height:3px;
+  background:var(--accent);
+  border-radius:5px;
+  transition:0.4s ease;
+}
+
+/* Toggle Animation */
+.menu-toggle.active span:nth-child(1) {
+  transform:translateY(9px) rotate(45deg);
+}
+
+.menu-toggle.active span:nth-child(2) {
+  opacity:0;
+}
+
+.menu-toggle.active span:nth-child(3) {
+  transform:translateY(-9px) rotate(-45deg);
+}
+
+/* ===========================
+      MOBILE MENU
+   =========================== */
+@media (max-width: 850px) {
+  .menu-toggle { display:flex; }
+
+  .md-menu {
+    position:absolute;
+    top:68px;
+    left:0;
+    width:100%;
+    flex-direction:column;
+    align-items:flex-start;
+    padding:20px 25px;
+    background:#000000f7;
+    display:none;
+    gap:18px;
+    border-bottom:1px solid #111;
+    animation:menuFade 0.3s ease-out;
+  }
+
+  .md-menu.active { display:flex; }
+
+  .md-menu a {
+    font-size:1.1rem;
+    padding:10px 0;
+    width:100%;
+    border-bottom:1px solid #111;
+  }
+
+  @keyframes menuFade {
+    from { opacity:0; transform:translateY(-10px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+}
+
+/* ===========================
+      MOVIE CARD ACTION ROW
+   =========================== */
+.action-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  background:#000000aa;
+  border-radius:8px;
+  margin-top:8px;
+}
+
+.action-btn {
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:6px;
+  padding:8px 10px;
+  font-size:0.88rem;
+  border-radius:8px;
+  color:#fff;
+  background:#1a1a1a;
+  border:1px solid #222;
+  transition:0.25s ease;
+  cursor:pointer;
+}
+
+.action-btn:hover {
+  background:#222;
+  border:1px solid var(--accent);
+  transform:translateY(-2px);
+}
+
+/* Watch Button Highlight */
+.action-btn.watch {
+  background:var(--accent);
+  color:#000;
+  font-weight:600;
+}
+
+.action-btn.watch:hover {
+  background:var(--accent-dark);
+}
+
+/* BADGES (HD, NEW, 4K, etc.) */
+.badge {
+  position:absolute;
+  top:8px;
+  left:8px;
+  padding:4px 8px;
+  background:var(--accent);
+  color:#000;
+  font-size:0.72rem;
+  font-weight:700;
+  border-radius:5px;
+  text-transform:uppercase;
+}
+
+/* Prevent menu overlay */
+.movie-grid {
+  margin-top:10px;
+  position:relative;
+  z-index:1;
+}
 
 </style>
 </head>
 <body>
 
-<header>
-  <div style="display:flex;align-items:center;gap:12px"><div class="logo">MovieDrift</div></div>
+<header class="md-header">
+  <div class="left-area">
+    <div class="logo">MovieDrift</div>
 
-  <div class="controls">
+    <!-- Menu Toggle -->
+    <div id="menuToggle" class="menu-toggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </div>
+
+  <div class="controls md-menu">
     <select id="themeSelector" title="Theme">
-       <option value="dark">Dark Green (Default)</option>
-  <option value="white">White Mode</option>
-  <option value="pink">Soft Pink</option>
-  <option value="blue">Blue Neon</option>
-  <option value="gold">Gold Premium</option>
-  <option value="purple">Purple Night</option>
+      <option value="dark">Dark Green (Default)</option>
+      <option value="white">White Mode</option>
+      <option value="pink">Soft Pink</option>
+      <option value="blue">Blue Neon</option>
+      <option value="gold">Gold Premium</option>
+      <option value="purple">Purple Night</option>
     </select>
 
     <input id="search" type="search" placeholder="Search movies...">
-    <select id="typeFilter"><option value="">All types</option><option value="Movie">Movie</option><option value="Series">Series</option><option value="Animation">Animation</option></select>
+
+    <select id="typeFilter">
+      <option value="">All types</option>
+      <option value="Movie">Movie</option>
+      <option value="Series">Series</option>
+      <option value="Animation">Animation</option>
+    </select>
+
     <select id="genreFilter"><option value="">All genres</option></select>
     <select id="yearFilter"><option value="">All years</option></select>
 
-    <div id="authArea" style="display:flex;gap:8px;align-items:center">
-      <button id="openAuthBtn" class="btn" style="padding:6px 10px;">Login</button>
-      <button id="logoutBtn" class="btn" style="display:none;padding:6px 10px;">Logout</button>
+    <div id="authArea" class="auth-box">
+      <button id="openAuthBtn" class="btn">Login</button>
+      <button id="logoutBtn" class="btn" style="display:none;">Logout</button>
     </div>
 
-    <button id="watchlistToggle" class="btn" style="padding:6px 10px;">Watchlist (0)</button>
+    <button id="watchlistToggle" class="btn">Watchlist (0)</button>
   </div>
 </header>
-
 <main><div id="grid" class="grid"></div></main>
 
 <!-- Movie Modal -->
@@ -1144,6 +1362,14 @@ window.viewAndPlayByFiltered = function(index){
     // If no modal is open, back button works normally
   });
 })();
+// MENU TOGGLE SCRIPT
+const menuToggle = document.getElementById("menuToggle");
+const menu = document.querySelector(".md-menu");
+
+menuToggle.onclick = () => {
+  menuToggle.classList.toggle("active");
+  menu.classList.toggle("active");
+};
 
 </script>
 
@@ -1152,6 +1378,7 @@ window.viewAndPlayByFiltered = function(index){
 
 </body>
 </html>
+
 
 
 
