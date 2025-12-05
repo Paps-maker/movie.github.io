@@ -347,6 +347,27 @@ a.download-link:hover,
   transform: translateY(-1px);
 }
 
+/* Movie Drift button (keeps your theme) */
+.guest-cta .btn {
+  background: var(--accent);
+  color: #000;
+}
+.guest-cta .btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.btn-icon svg {
+  pointer-events: none;
+}
 /* ===========================
    MOVIEDRIFT PREMIUM UI CSS
    =========================== */
@@ -550,20 +571,17 @@ a.download-link:hover,
   position:relative;
   z-index:1;
 }
-/* Responsive search input with spacing */
+/* Responsive search input */
 #search {
   width: 100%;           /* Full width of its container */
-  max-width: 500px;      /* Limit max width on large screens */
+  max-width: 500px;      /* Optional: limit max width on large screens */
   padding: 10px 15px;    /* Comfortable padding */
   font-size: 16px;       /* Readable text */
   border: 2px solid #00ff66; /* Accent border */
   border-radius: 25px;   /* Rounded edges */
   outline: none;
-  box-sizing: border-box;
+  box-sizing: border-box; /* Ensure padding doesn't break width */
   transition: all 0.3s ease;
-  
-  /* Spacing from menu toggle */
-  margin: 0 10px;        /* Horizontal margin (left & right) */
 }
 
 #search:focus {
@@ -571,24 +589,15 @@ a.download-link:hover,
   box-shadow: 0 0 5px rgba(0, 255, 102, 0.5);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Optional: responsive font size for small screens */
+@media (max-width: 400px) {
   #search {
-    max-width: 300px;    /* Smaller max width on tablets/mobile */
-    margin: 0 5px;       /* Less margin for small screens */
     font-size: 14px;
     padding: 8px 12px;
   }
 }
 
 </style>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#00ff66">
-
-<!-- iOS support -->
-<link rel="apple-touch-icon" href="img/logo-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-
 </head>
 <body>
 
@@ -615,66 +624,55 @@ a.download-link:hover,
       <option value="purple">Purple Night</option>
     </select>
 
-    
-<style>
-#installAppBtn {
+    <!-- Link Manifest -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#00ff66">
+
+<!-- Install Button -->
+<button id="installAppBtn" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
   background:#00ff66;
   color:#000;
-  padding:7px 12px;
+  padding:8px 14px;
+  border-radius:50px;
   border:none;
-  border-radius:40px;
-  font-size:12px;
-  font-weight:600;
+  font-weight:bold;
   cursor:pointer;
   display:none;
-  align-items:center;
-  gap:6px;
-  box-shadow:0 0 10px rgba(0,255,102,0.35);
-  transition:all .25s ease;
-}
-
-#installAppBtn:hover {
-  transform:translateY(-2px);
-  box-shadow:0 0 14px rgba(0,255,102,0.6);
-}
-
-#installAppBtn:active {
-  transform:scale(0.95);
-}
-
-#installAppBtn svg {
-  width:14px;
-  height:14px;
-}
-</style>
-
-<button id="installAppBtn">
-  <svg viewBox="0 0 24 24" fill="none">
-    <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17h16" 
-          stroke="black" stroke-width="2" 
-          stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  z-index: 9999;
+">
   Install App
 </button>
 
 <script>
-let deferredPrompt;
-const installBtn = document.getElementById("installAppBtn");
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('Service Worker registered:', reg))
+        .catch(err => console.log('Service Worker failed:', err));
+    });
+  }
 
-// Show the install button when PWA can be installed
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  installBtn.style.display = "inline-flex";
-});
+  // PWA Install Prompt
+  let deferredPrompt;
+  const installBtn = document.getElementById("installAppBtn");
 
-// Handle button click
-installBtn.addEventListener("click", () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt = null;
-  installBtn.style.display = "none";
-});
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = "block";
+  });
+
+  installBtn.addEventListener("click", () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt = null;
+    installBtn.style.display = "none";
+  });
 </script>
 
 
@@ -695,9 +693,7 @@ installBtn.addEventListener("click", () => {
 
     <button id="watchlistToggle" class="btn">Watchlist (0)</button>
   </div>
-  
 </header>
-
 <main><div id="grid" class="grid"></div></main>
 
 <!-- Movie Modal -->
@@ -740,33 +736,25 @@ installBtn.addEventListener("click", () => {
 </div>
 
 <!-- Auth Modal -->
-<!-- Auth Modal -->
 <div class="modal" id="authModal">
   <div class="modal-content">
     <span class="close" onclick="closeModal('authModal')">&times;</span>
-    <h2 id="authTitle">Sign in</h2>
-    <div style="display:flex;gap:8px;flex-direction:column;max-width:420px;">
+    <h2 id="authTitle">Sign In</h2>
+    <div class="auth-form">
       <input id="authIdentifier" placeholder="Email or Username" type="text">
       <input id="authPassword" placeholder="Password (6+ chars)" type="password">
-      <div style="display:flex;gap:8px;">
+      <div class="auth-buttons">
         <button id="signInBtn" class="btn">Sign In</button>
-        <button id="registerBtn" class="btn">Register</button>
+        <button id="registerBtn" class="btn"></button>
       </div>
-      <div style="color:var(--muted);font-size:13px;margin-top:8px;">
-        If you have no account contact our team to be registered.
+      <div class="auth-note">
+        If you have no account, contact our team to be registered.
       </div>
     </div>
   </div>
 </div>
 
-<!-- Loader (add this in your HTML, hidden by default) -->
-<div id="loader" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;justify-content:center;align-items:center;">
-  <div style="padding:20px;background:#000;color:#00ff66;border-radius:8px;font-weight:bold;">Loading...</div>
-</div>
-
-
 <style>
-  
 /* Modal Background */
 .modal {
   display: none; /* hidden by default */
@@ -1096,69 +1084,24 @@ function showGuestModal(actionHint='') {
 }
 
 /* ---------------- Auth system ---------------- */
-async function loginUser(identifier, password) {
-  showLoader(); // Show loading indicator
-  try {
-    const usersRef = collection(db, "users");
-
-    // First try email
-    let q = query(usersRef, where("email", "==", identifier), limit(1));
-    let snapshot = await Promise.race([
-      getDocs(q),
-      new Promise((_, reject) => setTimeout(() => reject("timeout"), 7000))
-    ]);
-
-    if (snapshot === "timeout") {
-      hideLoader();
-      return alert("Network too slow. Try again.");
-    }
-
-    // If not found by email, try username
-    if (snapshot.empty) {
-      q = query(usersRef, where("username", "==", identifier), limit(1));
-      snapshot = await getDocs(q);
-      if (snapshot.empty) {
-        hideLoader();
-        return alert("User not found");
-      }
-    }
-
-    const userDoc = snapshot.docs[0];
-    const user = userDoc.data();
-
-    if (user.password === password) {
-      currentUser = { id: userDoc.id, ...user };
-      saveCurrentUser();
-      watchUserStatus();      // Start real-time status tracking
-      updateAuthUI();
-      closeModal('authModal');
-      hideLoader();
-      alert("Logged in successfully");
-    } else {
-      hideLoader();
-      alert("Incorrect password");
-    }
-  } catch (err) {
-    hideLoader();
-    console.error(err);
-    alert("An error occurred. Try again.");
-  }
-}
-
-async function registerUser(identifier,password){
-  if(password.length<6){ alert("Password must be 6+ chars"); return; }
+async function loginUser(identifier,password){
   const usersRef = collection(db,"users");
-  const q=query(usersRef,where("email","==",identifier));
-  const snapshot=await getDocs(q);
-  if(!snapshot.empty){return alert("User already exists");}
-  const docRef = await addDoc(usersRef,{email:identifier,password:password,createdAt:Date.now(), status:"Paid"});
-  currentUser={id:docRef.id,email:identifier, status:"Paid"};
-  saveCurrentUser();
-  watchUserStatus();
-  alert("Account created & logged in");
-  updateAuthUI();
-  closeModal('authModal');
+  let q=query(usersRef,where("email","==",identifier));
+  let snapshot = await getDocs(q);
+  if(snapshot.empty){ q=query(usersRef,where("username","==",identifier)); snapshot=await getDocs(q); if(snapshot.empty){return alert("User not found");} }
+  const userDoc=snapshot.docs[0];
+  const user=userDoc.data();
+  if(user.password===password){
+    currentUser={id:userDoc.id,...user};
+    saveCurrentUser();
+    watchUserStatus(); // Start real-time status tracking
+    alert("Logged in successfully");
+    updateAuthUI();
+    closeModal('authModal');
+  } else alert("Incorrect password");
 }
+
+
 
 signInBtn.onclick = ()=>loginUser(authIdentifier.value.trim(),authPassword.value);
 registerBtn.onclick = ()=>registerUser(authIdentifier.value.trim(),authPassword.value);
@@ -1312,6 +1255,8 @@ function watchEpisodes(movieId) {
   });
 }
 
+
+
 /* ---------------- VIEW DETAILS ---------------- */
 window.viewDetailsByFiltered = async function (index) {
   const m = window.currentFiltered[index];
@@ -1360,33 +1305,21 @@ window.viewDetailsByFiltered = async function (index) {
   }
 
   // Episodes
-if (m.type === "Series") {
-  if (episodeUnsub) episodeUnsub();
-
-  // Sort episodes by season and episode number
-  if (m.episodes && m.episodes.length > 0) {
-    m.episodes.sort((a, b) => {
-      if ((a.season || 1) !== (b.season || 1)) {
-        return (a.season || 1) - (b.season || 1);
-      }
-      return (a.ep || 1) - (b.ep || 1);
-    });
+  if(m.type === "Series"){
+    if(episodeUnsub) episodeUnsub();
+    episodeUnsub = watchEpisodes(m.id);
   }
 
-  episodeUnsub = watchEpisodes(m.id); // keep same function call
-}
-
-document.getElementById("modalTitle").innerText = m.title;
-document.getElementById("modalYear").innerText = "Year: " + m.year;
-document.getElementById("modalGenres").innerText = "Genres: " + (m.genres || []).join(", ");
-document.getElementById("modalRating").innerText = m.rating
-  ? `${m.rating.toFixed(1)} / 10 (${Math.round(m.rating * 10)}%)`
-  : "";
-document.getElementById("modalDesc").innerText = m.description || "";
-document.getElementById("movieModal").style.display = "flex";
-document.getElementById("modalAddToList").onclick = () => addToWatchlistByFiltered(index);
+  document.getElementById("modalTitle").innerText = m.title;
+  document.getElementById("modalYear").innerText = "Year: " + m.year;
+  document.getElementById("modalGenres").innerText = "Genres: " + (m.genres || []).join(", ");
+  document.getElementById("modalRating").innerText = m.rating
+    ? `${m.rating.toFixed(1)} / 10 (${Math.round(m.rating * 10)}%)`
+    : "";
+  document.getElementById("modalDesc").innerText = m.description || "";
+  document.getElementById("movieModal").style.display = "flex";
+  document.getElementById("modalAddToList").onclick = () => addToWatchlistByFiltered(index);
 };
-
 
 /* ---------------- WATCH BUTTON (with real-time episodes) ---------------- */
 window.viewAndPlayByFiltered = function(index){
@@ -1499,76 +1432,23 @@ const menu = document.querySelector(".md-menu");
 menuToggle.onclick = () => {
   menuToggle.classList.toggle("active");
   menu.classList.toggle("active");
-  /* AUTO-CLOSE MENU WHEN LINK IS CLICKED */
-document.querySelectorAll('.md-menu a').forEach(link => {
-    link.addEventListener('click', () => {
-        const menu = document.querySelector('.md-menu');
-        const toggle = document.querySelector('.menu-toggle');
-
-        menu.classList.remove('active');
-        toggle.classList.remove('active');
-    });
-});
-
 };
 
 </script>
 
-<div id="loader" style="
-  display:none;
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.75);
-  backdrop-filter: blur(2px);
-  z-index:999999;
-  color:white;
-  font-size:20px;
-  text-align:center;
-  padding-top:20%;
-  font-family:Arial, sans-serif;
-">
 
-  <!-- Bouncing circles -->
-  <div style="margin:0 auto 12px auto; width:70px; display:flex; justify-content:space-between;">
-    <div class="bounce-circle"></div>
-    <div class="bounce-circle"></div>
-    <div class="bounce-circle"></div>
-  </div>
-
-  Loading, please wait...
-</div>
-
-<style>
-.bounce-circle {
-  width:15px;
-  height:15px;
-  background-color:#00ff66;
-  border-radius:50%;
-  display:inline-block;
-  animation: bounce 0.6s infinite alternate;
-}
-
-.bounce-circle:nth-child(2) { animation-delay: 0.2s; }
-.bounce-circle:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes bounce {
-  from { transform: translateY(0); }
-  to { transform: translateY(-15px); }
-}
-</style>
-
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/service-worker.js")
-      .then(() => console.log("PWA Ready"))
-      .catch(err => console.log("SW Error:", err));
-  });
-}
-</script>
 
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
 
