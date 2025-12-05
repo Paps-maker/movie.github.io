@@ -1051,20 +1051,7 @@ async function loginUser(identifier,password){
   } else alert("Incorrect password");
 }
 
-async function registerUser(identifier,password){
-  if(password.length<6){ alert("Password must be 6+ chars"); return; }
-  const usersRef = collection(db,"users");
-  const q=query(usersRef,where("email","==",identifier));
-  const snapshot=await getDocs(q);
-  if(!snapshot.empty){return alert("User already exists");}
-  const docRef = await addDoc(usersRef,{email:identifier,password:password,createdAt:Date.now(), status:"Paid"});
-  currentUser={id:docRef.id,email:identifier, status:"Paid"};
-  saveCurrentUser();
-  watchUserStatus();
-  alert("Account created & logged in");
-  updateAuthUI();
-  closeModal('authModal');
-}
+
 
 signInBtn.onclick = ()=>loginUser(authIdentifier.value.trim(),authPassword.value);
 registerBtn.onclick = ()=>registerUser(authIdentifier.value.trim(),authPassword.value);
@@ -1404,6 +1391,7 @@ menuToggle.onclick = () => {
 
 </body>
 </html>
+
 
 
 
