@@ -624,57 +624,7 @@ a.download-link:hover,
       <option value="purple">Purple Night</option>
     </select>
 
-    <!-- Link Manifest -->
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#00ff66">
-
-<!-- Install Button -->
-<button id="installAppBtn" style="
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background:#00ff66;
-  color:#000;
-  padding:8px 14px;
-  border-radius:50px;
-  border:none;
-  font-weight:bold;
-  cursor:pointer;
-  display:none;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-  z-index: 9999;
-">
-  Install App
-</button>
-
-<script>
-  // Register Service Worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(reg => console.log('Service Worker registered:', reg))
-        .catch(err => console.log('Service Worker failed:', err));
-    });
-  }
-
-  // PWA Install Prompt
-  let deferredPrompt;
-  const installBtn = document.getElementById("installAppBtn");
-
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBtn.style.display = "block";
-  });
-
-  installBtn.addEventListener("click", () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt = null;
-    installBtn.style.display = "none";
-  });
-</script>
-
+    
 
     <select id="typeFilter">
       <option value="">All types</option>
