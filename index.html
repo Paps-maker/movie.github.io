@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link rel="icon" href="img/logo.png" type="image/png">
 <title>MovieDrift</title>
+<link rel="manifest" href="manifest.json">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js")
+    .then(() => console.log("MovieDrift PWA Active"));
+  }
+</script>
 
 <style>
 :root { --bg:#000; --card-bg:#0a0a0a; --accent:#00ff66; --text:#ddd; --muted:#888; }
@@ -645,6 +653,38 @@ a.download-link:hover,
   </div>
 </header>
 <main><div id="grid" class="grid"></div></main>
+<button id="installBtn" style="
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#00ff66;
+  color:#000;
+  padding:12px 18px;
+  font-weight:bold;
+  border-radius:6px;
+  border:none;
+  cursor:pointer;
+  display:none;
+">
+  Install MovieDrift
+</button>
+
+<script>
+let deferredPrompt;
+const btn = document.getElementById("installBtn");
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  btn.style.display = "block";
+});
+
+btn.addEventListener("click", () => {
+  btn.style.display = "none";
+  deferredPrompt.prompt();
+  deferredPrompt = null;
+});
+</script>
 
 <!-- Movie Modal -->
 <div class="modal" id="movieModal">
@@ -1391,6 +1431,7 @@ menuToggle.onclick = () => {
 
 </body>
 </html>
+
 
 
 
