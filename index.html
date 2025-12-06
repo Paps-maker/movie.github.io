@@ -651,6 +651,24 @@ a.download-link:hover,
 
     <button id="watchlistToggle" class="btn">Watchlist (0)</button>
   </div>
+  <div id="installTopBar" style="
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #00ff66;
+  color: #000;
+  padding: 12px 18px;
+  font-weight: bold;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 9999;
+  display: none;
+">
+  📥 Install MovieDrift App
+</div>
+
 </header>
 <main><div id="grid" class="grid"></div></main>
 <button id="installBtn" style="
@@ -1427,10 +1445,33 @@ menuToggle.onclick = () => {
 </script>
 
 
+<script>
+let deferredPrompt;
+const topBar = document.getElementById("installTopBar");
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  topBar.style.display = "block"; // Show the top bar
+});
+
+// When user taps the install bar
+topBar.addEventListener("click", () => {
+  if (!deferredPrompt) return;
+  
+  deferredPrompt.prompt();
+  
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    topBar.style.display = "none"; // Hide after install
+  });
+});
+</script>
 
 
 </body>
 </html>
+
 
 
 
